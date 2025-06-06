@@ -2,7 +2,3 @@ dist/
 node_modules/
 .env.local
 .DS_Store
-dist/
-node_modules/
-.env.local
-.DS_Store
