@@ -18,13 +18,13 @@
     "name": "Derek Team"
   },
   "license": "MIT",
-  "homepage": "https://derekzhou79.github.io/luxury-watch-emporium",
+  "homepage": "https://DerekZhou1979.github.io/luxury-watch-emporium",
   "repository": {
     "type": "git",
-    "url": "https://github.com/derekzhou79/luxury-watch-emporium.git"
+    "url": "https://github.com/DerekZhou1979/luxury-watch-emporium.git"
   },
   "bugs": {
-    "url": "https://github.com/derekzhou79/luxury-watch-emporium/issues"
+    "url": "https://github.com/DerekZhou1979/luxury-watch-emporium/issues"
   },
   "metadata": {
     "requestFramePermissions": []
