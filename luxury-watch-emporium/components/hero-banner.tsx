@@ -7,7 +7,7 @@ const HeroSection: React.FC = () => {
     <div className="relative bg-brand-surface text-brand-text py-20 md:py-32 rounded-lg shadow-2xl overflow-hidden">
       <div 
         className="absolute inset-0 bg-cover bg-center opacity-30" 
-        style={{ backgroundImage: "url('/images/seagull_hero_banner_1963pilot_main.jpg')" }}
+        style={{ backgroundImage: "url('images/seagull_hero_banner_1963pilot_main.jpg')" }}
       ></div>
       <div className="absolute inset-0 bg-gradient-to-br from-brand-bg via-brand-bg/80 to-transparent"></div>
       
