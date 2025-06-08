@@ -5,7 +5,7 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-# 设置GitHub Pages权限
+# 设置GITHUB_TOKEN权限
 permissions:
   contents: read
   pages: write
@@ -30,6 +30,9 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
+      - name: 🔧 设置GitHub Pages
+        uses: actions/configure-pages@v5
+
       - name: 📦 安装依赖
         run: npm ci
 
@@ -39,7 +42,7 @@ jobs:
       - name: 🚫 添加 .nojekyll 文件
         run: touch ./dist/.nojekyll
 
-      - name: 📤 上传构建产物
+      - name: 📤 上传GitHub Pages产物
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
