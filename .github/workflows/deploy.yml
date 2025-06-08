@@ -42,6 +42,15 @@ jobs:
       - name: 🚫 添加 .nojekyll 文件
         run: touch ./dist/.nojekyll
 
+      - name: 📋 列出构建文件 (调试)
+        run: |
+          echo "=== 构建目录内容 ==="
+          ls -la dist/
+          echo "=== images 目录内容 ==="
+          ls -la dist/images/ | head -10
+          echo "=== 检查 .nojekyll 文件 ==="
+          ls -la dist/.nojekyll
+
       - name: 📤 上传GitHub Pages产物
         uses: actions/upload-pages-artifact@v3
         with:
