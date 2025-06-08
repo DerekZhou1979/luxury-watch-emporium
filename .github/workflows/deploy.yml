@@ -36,6 +36,9 @@ jobs:
       - name: 🔨 构建项目
         run: npm run build
 
+      - name: 🚫 添加 .nojekyll 文件
+        run: touch ./dist/.nojekyll
+
       - name: 📤 上传构建产物
         uses: actions/upload-pages-artifact@v3
         with:
