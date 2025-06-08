@@ -40,7 +40,7 @@ dist/
 ```bash
 # 在GitHub上创建新仓库
 # 然后推送代码
-git remote add origin https://github.com/yourusername/luxury-watch-emporium.git
+git remote add origin https://github.com/DerekZhou1979/luxury-watch-emporium.git
 git branch -M main
 git push -u origin main
 ```

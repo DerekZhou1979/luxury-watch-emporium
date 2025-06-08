@@ -86,3 +86,16 @@ public
 # Temporary folders
 tmp/
 temp/
+
+# Python virtual environment (if any)
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Other project files
+xiaohongshu-search/
+seagull-watch-image-downloader/
