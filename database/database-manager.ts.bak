@@ -498,7 +498,7 @@ export class DatabaseManager {
     if (userCount === 0 && categoryCount === 0 && productCount === 0) {
       try {
         // 从JSON文件加载初始数据
-        const response = await fetch('./database/seagull-watch-db.json');
+        const response = await fetch('/database/seagull-watch-db.json');
         if (!response.ok) {
           throw new Error(`无法加载数据文件: ${response.statusText}`);
         }
