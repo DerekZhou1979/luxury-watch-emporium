@@ -81,7 +81,7 @@ const HomePage: React.FC = () => {
                 </Link>
             </div>
             <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden">
-                <img src="images/seagull_team_main.jpg" alt="海鸥表制表工艺" className="object-cover w-full h-full" />
+                <img src="./images/seagull_team_main.jpg" alt="海鸥表制表工艺" className="object-cover w-full h-full" />
             </div>
         </div>
       </section>

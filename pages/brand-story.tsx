@@ -13,7 +13,7 @@ const AboutPage: React.FC = () => {
 
       <section className="grid md:grid-cols-2 gap-8 items-center">
         <div className="aspect-w-4 aspect-h-3 rounded-lg overflow-hidden shadow-lg">
-                        <img src="images/seagull_background_(watch)_main.jpg" alt="海鸥表制表工坊" className="object-cover w-full h-full" />
+                        <img src="./images/seagull_background_(watch)_main.jpg" alt="海鸥表制表工坊" className="object-cover w-full h-full" />
         </div>
         <div>
           <h2 className="text-3xl font-serif font-semibold text-brand-text mb-4">70年制表传承</h2>
@@ -61,7 +61,7 @@ const AboutPage: React.FC = () => {
           </p>
         </div>
         <div className="aspect-w-4 aspect-h-3 rounded-lg overflow-hidden shadow-lg">
-                        <img src="images/seagull_product_tourbillon_skeleton_main_skeleton.jpg" alt="海鸥表大师系列" className="object-cover w-full h-full" />
+                        <img src="./images/seagull_product_tourbillon_skeleton_main_skeleton.jpg" alt="海鸥表大师系列" className="object-cover w-full h-full" />
         </div>
       </section>
 

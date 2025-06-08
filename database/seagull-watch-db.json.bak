@@ -131,11 +131,11 @@
       "brand": "海鸥表",
       "model": "1963长空版",
       "images": [
-        "./images/seagull_product_1963pilot_main_02.png",
-        "./images/seagull_product_1963pilot_main.png",
-        "./images/seagull_product_1963pilot_main_01.png",
-        "./images/seagull_detail_1963pilot_main_01.png",
-        "./images/seagull_product_1963pilot_main_jewels.jpg"
+        "images/seagull_product_1963pilot_main_02.png",
+        "images/seagull_product_1963pilot_main.png",
+        "images/seagull_product_1963pilot_main_01.png",
+        "images/seagull_detail_1963pilot_main_01.png",
+        "images/seagull_product_1963pilot_main_jewels.jpg"
       ],
       "specifications": {
         "movement": "ST19手动上链机芯",
@@ -171,11 +171,11 @@
       "brand": "海鸥表",
       "model": "曜翼",
       "images": [
-        "./images/seagull_product_tourbillon_skeleton_main.png",
-        "./images/seagull_product_tourbillon_skeleton_main.jpg",
-        "./images/seagull_product_tourbillon_skeleton_main_02.png",
-        "./images/seagull_product_tourbillon_skeleton_main_03.png",
-        "./images/seagull_detail_tourbillon_skeleton.jpg"
+        "images/seagull_product_tourbillon_skeleton_main.png",
+        "images/seagull_product_tourbillon_skeleton_main.jpg",
+        "images/seagull_product_tourbillon_skeleton_main_02.png",
+        "images/seagull_product_tourbillon_skeleton_main_03.png",
+        "images/seagull_detail_tourbillon_skeleton.jpg"
       ],
       "specifications": {
         "movement": "自动上链陀飞轮机芯",
@@ -211,10 +211,10 @@
       "brand": "海鸥表",
       "model": "千米深潜",
       "images": [
-        "./images/seagull_product_dive_main.png",
-        "./images/seagull_product_dive_main_01.png",
-        "./images/seagull_product_dive_main_dive.png",
-        "./images/seagull_background_dive.jpg"
+        "images/seagull_product_dive_main.png",
+        "images/seagull_product_dive_main_01.png",
+        "images/seagull_product_dive_main_dive.png",
+        "images/seagull_background_dive.jpg"
       ],
       "specifications": {
         "movement": "自动上链机械机芯",
@@ -250,11 +250,11 @@
       "brand": "海鸥表",
       "model": "小金砖",
       "images": [
-        "./images/seagull_product_women_main_gold.png",
-        "./images/seagull_product_women_main_gold_01.png",
-        "./images/seagull_product_women_main_gold_02.png",
-        "./images/seagull_product_women_main_gold_03.png",
-        "./images/seagull_product_women_main_gold_04.png"
+        "images/seagull_product_women_main_gold.png",
+        "images/seagull_product_women_main_gold_01.png",
+        "images/seagull_product_women_main_gold_02.png",
+        "images/seagull_product_women_main_gold_03.png",
+        "images/seagull_product_women_main_gold_04.png"
       ],
       "specifications": {
         "movement": "瑞士石英机芯",
@@ -290,10 +290,10 @@
       "brand": "海鸥表",
       "model": "复古电视",
       "images": [
-        "./images/seagull_product_retrotv_main.png",
-        "./images/seagull_product_retrotv_main_01.png",
-        "./images/seagull_product_retrotv_main_zuan.png",
-        "./images/seagull_product_retrotv_main_glitch.png"
+        "images/seagull_product_retrotv_main.png",
+        "images/seagull_product_retrotv_main_01.png",
+        "images/seagull_product_retrotv_main_zuan.png",
+        "images/seagull_product_retrotv_main_glitch.png"
       ],
       "specifications": {
         "movement": "机械机芯",

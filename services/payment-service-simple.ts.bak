@@ -37,7 +37,7 @@ const PAYMENT_CONFIG = {
   },
   wechat: {
     account: 'SeagullWatch2024',
-    qrCodeUrl: 'images/payment/wechat-qr.png'
+    qrCodeUrl: '/images/payment/wechat-qr.png'
   },
   bank: {
     bankName: '中国工商银行',
