@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调试本地存储</title>
+    <style>
+        body { 
+            font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif; 
+            padding: 20px; 
+            background: #1a1a1a; 
+            color: #fff; 
+            line-height: 1.6;
+        }
+        .button { 
+            padding: 12px 24px; 
+            margin: 10px; 
+            background: #007cba; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 6px;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .button:hover { background: #005a87; }
+        pre { 
+            background: #1e1e1e; 
+            padding: 15px; 
+            border-radius: 6px; 
+            overflow: auto; 
+            max-height: 500px;
+            border: 1px solid #444;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        .section { 
+            margin: 20px 0; 
+            padding: 20px; 
+            border: 1px solid #333; 
+            border-radius: 8px; 
+            background: #2a2a2a;
+        }
+        h1 { color: #007cba; margin-bottom: 30px; }
+        h2 { color: #4a9eff; margin-bottom: 15px; }
+        .stats { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+            gap: 15px; 
+            margin: 15px 0;
+        }
+        .stat-item { 
+            background: #1e1e1e; 
+            padding: 15px; 
+            border-radius: 6px; 
+            text-align: center;
+            border: 1px solid #444;
+        }
+        .stat-number { 
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #4a9eff; 
+            display: block;
+        }
+        .stat-label { 
+            font-size: 12px; 
+            color: #aaa; 
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 海鸥表数据库调试工具</h1>
+    
+    <div class="section">
+        <h2>📊 数据库概览</h2>
+        <button class="button" onclick="showDatabaseOverview()">🔄 刷新概览</button>
+        <div id="overview"></div>
+    </div>
+
+    <div class="section">
+        <h2>📦 订单数据</h2>
+        <button class="button" onclick="showOrders()">🛍️ 显示所有订单</button>
+        <div id="orders"></div>
+    </div>
+
+    <div class="section">
+        <h2>📋 订单项目数据</h2>
+        <button class="button" onclick="showOrderItems()">📄 显示所有订单项目</button>
+        <div id="orderItems"></div>
+    </div>
+
+    <div class="section">
+        <h2>🗄️ 完整数据库</h2>
+        <button class="button" onclick="showFullDatabase()">💾 显示完整数据库</button>
+        <div id="fullDatabase"></div>
+    </div>
+
+    <script>
+        function showDatabaseOverview() {
+            const data = localStorage.getItem('seagull-watch-db');
+            if (data) {
+                try {
+                    const parsed = JSON.parse(data);
+                    const overview = {
+                        users: parsed.users ? parsed.users.length : 0,
+                        categories: parsed.categories ? parsed.categories.length : 0,
+                        products: parsed.products ? parsed.products.length : 0,
+                        orders: parsed.orders ? parsed.orders.length : 0,
+                        order_items: parsed.order_items ? parsed.order_items.length : 0,
+                        cart_items: parsed.cart_items ? parsed.cart_items.length : 0
+                    };
+                    
+                    // 显示统计卡片
+                    let statsHtml = '<div class="stats">';
+                    statsHtml += `<div class="stat-item"><span class="stat-number">${overview.users}</span><div class="stat-label">用户</div></div>`;
+                    statsHtml += `<div class="stat-item"><span class="stat-number">${overview.categories}</span><div class="stat-label">分类</div></div>`;
+                    statsHtml += `<div class="stat-item"><span class="stat-number">${overview.products}</span><div class="stat-label">产品</div></div>`;
+                    statsHtml += `<div class="stat-item"><span class="stat-number">${overview.orders}</span><div class="stat-label">订单</div></div>`;
+                    statsHtml += `<div class="stat-item"><span class="stat-number">${overview.order_items}</span><div class="stat-label">订单项</div></div>`;
+                    statsHtml += `<div class="stat-item"><span class="stat-number">${overview.cart_items}</span><div class="stat-label">购物车</div></div>`;
+                    statsHtml += '</div>';
+                    
+                    // 显示存储大小
+                    const sizeKB = (data.length / 1024).toFixed(2);
+                    statsHtml += `<p style="margin-top: 20px; color: #aaa;">数据库大小: <strong>${sizeKB} KB</strong></p>`;
+                    
+                    document.getElementById('overview').innerHTML = statsHtml;
+                } catch (e) {
+                    document.getElementById('overview').innerHTML = '<p style="color: #f44336;">❌ 数据格式错误: ' + e.message + '</p>';
+                }
+            } else {
+                document.getElementById('overview').innerHTML = '<p style="color: #ff9800;">⚠️ 本地存储为空</p>';
+            }
+        }
+
+        function showOrders() {
+            const data = localStorage.getItem('seagull-watch-db');
+            if (data) {
+                try {
+                    const parsed = JSON.parse(data);
+                    const orders = parsed.orders || [];
+                    document.getElementById('orders').innerHTML = '<pre>' + JSON.stringify(orders, null, 2) + '</pre>';
+                } catch (e) {
+                    document.getElementById('orders').innerHTML = '<p style="color: red;">数据格式错误: ' + e.message + '</p>';
+                }
+            } else {
+                document.getElementById('orders').innerHTML = '<p>本地存储为空</p>';
+            }
+        }
+
+        function showOrderItems() {
+            const data = localStorage.getItem('seagull-watch-db');
+            if (data) {
+                try {
+                    const parsed = JSON.parse(data);
+                    const orderItems = parsed.order_items || [];
+                    document.getElementById('orderItems').innerHTML = '<pre>' + JSON.stringify(orderItems, null, 2) + '</pre>';
+                } catch (e) {
+                    document.getElementById('orderItems').innerHTML = '<p style="color: red;">数据格式错误: ' + e.message + '</p>';
+                }
+            } else {
+                document.getElementById('orderItems').innerHTML = '<p>本地存储为空</p>';
+            }
+        }
+
+        function showFullDatabase() {
+            const data = localStorage.getItem('seagull-watch-db');
+            if (data) {
+                try {
+                    const parsed = JSON.parse(data);
+                    document.getElementById('fullDatabase').innerHTML = '<pre>' + JSON.stringify(parsed, null, 2) + '</pre>';
+                } catch (e) {
+                    document.getElementById('fullDatabase').innerHTML = '<p style="color: red;">数据格式错误: ' + e.message + '</p>';
+                }
+            } else {
+                document.getElementById('fullDatabase').innerHTML = '<p>本地存储为空</p>';
+            }
+        }
+        
+        // 页面加载时显示概览
+        showDatabaseOverview();
+    </script>
+</body>
+</html> 
