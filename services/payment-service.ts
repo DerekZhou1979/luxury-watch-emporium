@@ -7,13 +7,13 @@ const PAYMENT_CONFIG = {
     // 支付宝个人收款账号信息
     account: 'seagullwatch@example.com',
     name: '海鸥表专卖店',
-    qrCodeUrl: 'images/payment/alipay-qr.png' // 支付宝收款码
+    qrCodeUrl: 'images/payment/alipay-qr.jpg' // 支付宝收款码
   },
   wechat: {
     // 微信个人收款账号信息
     account: 'SeagullWatch2024',
     name: '海鸥表专卖店',
-    qrCodeUrl: 'images/payment/wechat-qr.png' // 微信收款码
+    qrCodeUrl: 'images/payment/wechat-qr.jpg' // 微信收款码
   },
   bank: {
     // 银行账户信息
