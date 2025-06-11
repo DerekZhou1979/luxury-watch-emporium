@@ -1,146 +1,168 @@
-# 支付功能配置指南
+# 💳 支付系统设置指南
 
-## 概述
-本电商平台已集成支付宝、微信支付和银行转账的个人收款功能。这是一个真实可行的解决方案，适合个人商户使用。
+## 📋 概述
 
-## 支付方式
+简化版支付系统，支持支付宝、微信、银行转账三种方式。
 
-### 1. 支付宝转账
-- **特点**: 使用支付宝个人收款码
-- **配置**: 需要上传支付宝收款码图片
-- **流程**: 用户扫码转账 → 手动确认收款 → 订单状态更新
+## 🚀 快速配置
 
-### 2. 微信支付
-- **特点**: 使用微信个人收款码  
-- **配置**: 需要上传微信收款码图片
-- **流程**: 用户扫码转账 → 手动确认收款 → 订单状态更新
-
-### 3. 银行转账
-- **特点**: 提供银行账户信息
-- **配置**: 在代码中设置银行账户信息
-- **流程**: 用户银行转账 → 手动确认收款 → 订单状态更新
-
-## 配置步骤
-
-### 第一步：准备收款码
-1. 打开支付宝，进入"收钱"功能，截图保存收款码
-2. 打开微信，进入"收付款" → "二维码收款"，截图保存收款码
-3. 将两个收款码图片分别命名为 `alipay-qr.png` 和 `wechat-qr.png`
-
-### 第二步：上传收款码图片
-```bash
-# 将收款码图片复制到项目目录
-cp /path/to/your/alipay-qr.png public/images/payment/
-cp /path/to/your/wechat-qr.png public/images/payment/
-```
-
-### 第三步：配置银行账户信息
-编辑 `src/services/payment-service.ts` 文件，更新银行账户信息：
-
+### 支付方式配置
 ```typescript
-bank: {
-  bankName: '中国工商银行',              // 改为您的银行名称
-  accountNumber: '6222 **** **** 1234',  // 改为您的卡号（隐藏部分数字）
-  accountName: '张三',                   // 改为您的真实姓名
-  branch: '北京分行营业部'               // 改为您的开户行
-}
-```
-
-### 第四步：配置收款账号信息
-同样在 `payment-service.ts` 中更新：
-
-```typescript
-alipay: {
-  account: 'your-alipay@example.com',    // 改为您的支付宝账号
-  name: '您的店铺名称',
-  qrCodeUrl: 'images/payment/alipay-qr.png'
-},
-wechat: {
-  account: 'Your-WeChat-ID',             // 改为您的微信号
-  name: '您的店铺名称',
-  qrCodeUrl: 'images/payment/wechat-qr.png'
-}
-```
-
-## 订单管理
-
-### 订单状态
-- **pending**: 待支付
-- **paid**: 已支付
-- **processing**: 处理中
-- **shipped**: 已发货
-- **delivered**: 已送达
-- **cancelled**: 已取消
-
-### 确认支付流程
-1. 客户完成支付后点击"我已完成支付"
-2. 订单状态自动更新为"已支付"
-3. 商户收到支付通知后可手动处理订单
-
-### 订单数据存储
-- 订单数据存储在浏览器 localStorage 中
-- 生产环境建议使用数据库存储
-- 订单号格式：SG + 时间戳 + 随机数
-
-## 费用计算
-
-### 运费计算
-- 满5000元免运费
-- 偏远地区（新疆、西藏等）运费25元
-- 其他地区运费15元
-
-### 税费计算
-- 订单金额超过50000元征收10%奢侈品税
-- 一般订单无额外税费
-
-## 安全提醒
-
-1. **收款码安全**: 定期更换收款码，避免长期使用同一个
-2. **订单验证**: 建议对大额订单进行电话确认
-3. **数据备份**: 定期备份订单数据，避免数据丢失
-4. **钓鱼防范**: 注意识别虚假付款截图
-
-## 扩展功能
-
-### 集成第三方支付（可选）
-如需更专业的支付解决方案，可考虑：
-- **个人商户**: 易宝支付、汇付天下个人版
-- **企业商户**: 支付宝当面付、微信支付官方API
-- **跨境支付**: PayPal、Stripe
-
-### 自动对账（高级）
-```typescript
-// 可添加自动对账功能
-class PaymentVerification {
-  static async verifyPayment(orderId: string, amount: number): Promise<boolean> {
-    // 调用支付接口验证
-    // 对比订单金额和实际收款金额
-    // 返回验证结果
+const PAYMENT_CONFIG = {
+  alipay: {
+    account: 'seagull_watch@alipay.com',
+    qrCodeUrl: 'images/payment/alipay-qr.png'
+  },
+  wechat: {
+    account: 'SeagullWatch2024',
+    qrCodeUrl: 'images/payment/wechat-qr.png'
+  },
+  bank: {
+    bankName: '中国工商银行',
+    accountNumber: '6212 2611 0000 1234 567',
+    accountName: '上海海鸟表业有限公司',
+    branch: '上海黄浦支行'
   }
 }
 ```
 
-## 法律合规
+### 修改收款信息
 
-1. **个人经营**: 确保符合当地个人经营相关法规
-2. **税务申报**: 及时申报相关税务
-3. **消费者保护**: 遵守电商平台消费者保护法规
-4. **数据保护**: 妥善保护客户个人信息
+**1. 支付宝配置**
+```typescript
+alipay: {
+  account: 'your-alipay-account',    // 改为您的支付宝账号
+  qrCodeUrl: 'images/payment/alipay-qr.png'
+}
+```
 
-## 常见问题
+**2. 微信配置**
+```typescript
+wechat: {
+  account: 'Your-WeChat-ID',         // 改为您的微信号
+  qrCodeUrl: 'images/payment/wechat-qr.png'
+}
+```
+
+**3. 银行配置**
+```typescript
+bank: {
+  bankName: '您的开户银行',
+  accountNumber: '您的银行账号',
+  accountName: '账户姓名',
+  branch: '开户支行'
+}
+```
+
+## 📱 二维码设置
+
+### 生成收款码
+1. 支付宝：打开支付宝 → 收钱 → 保存二维码
+2. 微信：打开微信 → 收付款 → 二维码收款 → 保存图片
+
+### 替换收款码
+1. 将新的二维码保存为：
+   - `public/images/payment/alipay-qr.png`
+   - `public/images/payment/wechat-qr.png`
+2. 重新构建项目：`npm run build`
+
+## 💰 费用计算
+
+### 运费规则
+- 满5000元免运费
+- 偏远地区（新疆、西藏等）：25元
+- 其他地区：15元
+
+### 税费规则
+- 订单≥50000元：收取10%奢侈品税
+- 其他订单：免税
+
+## 📋 订单管理
+
+### 订单状态
+- `pending` - 待支付
+- `paid` - 已支付
+- `processing` - 处理中
+- `shipped` - 已发货
+- `delivered` - 已送达
+- `cancelled` - 已取消
+
+### 支付流程
+1. 用户选择支付方式
+2. 系统显示收款信息/二维码
+3. 用户完成支付
+4. 点击"我已完成支付"
+5. 订单状态更新为"已支付"
+
+## 🔧 订单号规则
+
+**格式**: SG + 13位时间戳 + 3位随机数
+**示例**: SG1703123456789123
+
+```typescript
+static generateOrderId(): string {
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  return `SG${timestamp}${random}`;
+}
+```
+
+## 🗄️ 数据存储
+
+- 订单数据存储在 localStorage
+- 支持浏览器离线访问
+- 生产环境建议使用数据库
+
+## 🔒 安全提醒
+
+1. **收款码安全** - 定期更换，避免长期使用
+2. **订单验证** - 大额订单建议电话确认
+3. **数据备份** - 定期备份订单数据
+4. **防范钓鱼** - 注意识别虚假付款截图
+
+## ⚙️ 高级配置
+
+### 自定义支付方式
+```typescript
+// 在 PAYMENT_CONFIG 中添加新的支付方式
+paypal: {
+  account: 'your-paypal-email',
+  description: 'PayPal支付'
+}
+```
+
+### 修改费用计算
+```typescript
+// 自定义运费计算
+static calculateShipping(subtotal: number, province: string): number {
+  if (subtotal >= 3000) return 0;  // 修改免运费门槛
+  return province === '偏远地区' ? 30 : 20;  // 修改运费标准
+}
+```
+
+## 🚀 部署更新
+
+```bash
+# 修改配置后重新构建
+npm run build
+
+# 提交更改
+git add .
+git commit -m "更新支付配置"
+git push origin main
+```
+
+## ❓ 常见问题
 
 **Q: 如何处理支付纠纷？**
-A: 保留完整的订单记录和支付凭证，必要时可提供相关证据。
+A: 保留完整订单记录和支付凭证，联系客服处理。
 
 **Q: 收款码被盗用怎么办？**
-A: 立即更换收款码，联系支付平台客服处理。
+A: 立即更换收款码，联系支付平台客服。
 
-**Q: 如何提高支付成功率？**
-A: 提供多种支付方式，优化支付流程，及时响应客户咨询。
-
-**Q: 可以设置自动发货吗？**
-A: 当前版本需要手动处理，后续可添加自动化流程。
+**Q: 如何自动对账？**
+A: 当前版本需手动处理，可考虑集成第三方支付API。
 
 ---
 
-**注意**: 本功能适用于个人小型电商，如需处理大量订单建议升级至企业级支付解决方案。 
+**注意**: 此支付系统适用于个人小型电商，大量订单建议升级企业级方案。 

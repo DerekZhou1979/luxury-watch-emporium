@@ -1,373 +1,346 @@
-# 海鸥腕表商城数据库系统指南
+# 🗄️ 数据库使用指南
 
-## 🗄️ 系统概述
+## 📋 概述
 
-本系统采用轻量级JSON文件数据库作为起始方案，同时提供完整的迁移路径支持未来升级到MySQL、PostgreSQL等关系型数据库。系统具备完整的电商数据模型，支持用户管理、商品管理、订单处理、支付记录等核心功能。
+浏览器端JSON数据库系统，基于localStorage的轻量级数据管理解决方案。
 
-## 📊 数据库架构
+## 🏗️ 系统架构
 
-### 核心数据表
+```
+数据库管理器 (DatabaseManager)
+├── 浏览器数据库引擎 (BrowserDatabaseEngine)
+├── 数据库模式 (Schema)
+└── 本地存储 (localStorage)
+```
 
-| 表名 | 描述 | 主要字段 |
-|------|------|----------|
-| `users` | 用户信息 | id, email, password_hash, name, phone, status |
-| `products` | 商品信息 | id, name, price, sku, category_id, brand, stock_quantity |
-| `categories` | 商品分类 | id, name, slug, parent_id, sort_order |
-| `orders` | 订单主表 | id, user_id, order_number, status, total_amount |
-| `order_items` | 订单项目 | id, order_id, product_id, quantity, price |
-| `cart_items` | 购物车 | id, user_id, session_id, product_id, quantity |
-| `addresses` | 收货地址 | id, user_id, province, city, district, street |
-| `payments` | 支付记录 | id, order_id, amount, status, payment_method |
-| `reviews` | 商品评论 | id, product_id, user_id, rating, content |
-| `coupons` | 优惠券 | id, code, type, value, usage_limit |
-| `settings` | 系统设置 | id, key, value, category |
-| `logs` | 操作日志 | id, level, action, user_id, message |
+### 核心组件
 
-### 数据关系
+- **DatabaseManager** - 单例数据库管理器
+- **BrowserDatabaseEngine** - 底层数据库引擎
+- **Schema** - 数据表结构定义
+- **localStorage** - 数据持久化存储
 
-```mermaid
-erDiagram
-    users ||--o{ orders : "下单"
-    users ||--o{ cart_items : "购物车"
-    users ||--o{ addresses : "收货地址"
-    users ||--o{ reviews : "评论"
-    
-    categories ||--o{ products : "分类"
-    products ||--o{ cart_items : "加入购物车"
-    products ||--o{ order_items : "订单项目"
-    products ||--o{ reviews : "商品评论"
-    
-    orders ||--o{ order_items : "包含商品"
-    orders ||--o{ payments : "支付记录"
+## 📊 数据表结构
+
+### 用户表 (users)
+```typescript
+interface UserRecord {
+  id: string;                    // 用户ID
+  email: string;                 // 邮箱
+  username: string;              // 用户名
+  full_name: string;             // 全名
+  password_hash: string;         // 密码哈希
+  phone?: string;                // 电话
+  avatar_url?: string;           // 头像
+  email_verified: boolean;       // 邮箱验证状态
+  status: 'active' | 'inactive'; // 用户状态
+  created_at: string;            // 创建时间
+  updated_at: string;            // 更新时间
+}
+```
+
+### 产品表 (products)
+```typescript
+interface ProductRecord {
+  id: string;                    // 产品ID
+  name: string;                  // 产品名称
+  description: string;           // 产品描述
+  price: number;                 // 价格
+  sku: string;                   // SKU编码
+  category_id: string;           // 分类ID
+  images: string[];              // 图片数组
+  stock_quantity: number;        // 库存数量
+  status: 'active' | 'inactive'; // 产品状态
+  is_featured: boolean;          // 是否精选
+  tags: string[];                // 标签
+  created_at: string;            // 创建时间
+  updated_at: string;            // 更新时间
+}
+```
+
+### 订单表 (orders)
+```typescript
+interface OrderRecord {
+  id: string;                    // 订单ID
+  order_number: string;          // 订单号
+  user_id?: string;              // 用户ID（可空，支持游客）
+  status: OrderStatus;           // 订单状态
+  payment_status: PaymentStatus; // 支付状态
+  payment_method: string;        // 支付方式
+  subtotal: number;              // 小计
+  shipping_cost: number;         // 运费
+  tax_amount: number;            // 税费
+  total_amount: number;          // 总金额
+  shipping_address: Address;     // 收货地址
+  created_at: string;            // 创建时间
+  updated_at: string;            // 更新时间
+}
+```
+
+### 订单项表 (order_items)
+```typescript
+interface OrderItemRecord {
+  id: string;           // 项目ID
+  order_id: string;     // 订单ID
+  product_id: string;   // 产品ID
+  quantity: number;     // 数量
+  unit_price: number;   // 单价
+  total_price: number;  // 总价
+}
+```
+
+### 购物车表 (cart_items)
+```typescript
+interface CartItemRecord {
+  id: string;           // 项目ID
+  user_id?: string;     // 用户ID
+  session_id?: string;  // 会话ID
+  product_id: string;   // 产品ID
+  quantity: number;     // 数量
+  created_at: string;   // 创建时间
+}
+```
+
+### 分类表 (categories)
+```typescript
+interface CategoryRecord {
+  id: string;           // 分类ID
+  name: string;         // 分类名称
+  slug: string;         // URL友好名称
+  description?: string; // 描述
+  parent_id?: string;   // 父分类ID
+  sort_order: number;   // 排序
+  is_active: boolean;   // 是否活跃
+  created_at: string;   // 创建时间
+  updated_at: string;   // 更新时间
+}
 ```
 
 ## 🚀 快速开始
 
-### 1. 初始化数据库
-
+### 初始化数据库
 ```typescript
-import { db } from './database/database-manager';
+import { DatabaseManager } from './database/database-manager';
 
-// 初始化数据库连接
+// 获取单例实例
+const db = DatabaseManager.getInstance();
+
+// 初始化数据库
 await db.initialize();
 ```
 
-### 2. 基础操作示例
+### 基本CRUD操作
 
+#### 创建记录
 ```typescript
 // 创建用户
 const user = await db.createUser({
   email: 'user@example.com',
-  password_hash: 'hashed_password',
-  name: '张三',
-  phone: '13800138000'
+  username: 'testuser',
+  full_name: '测试用户',
+  password_hash: 'hashedpassword'
 });
 
-// 查询商品
-const products = await db.findProducts({
+// 创建产品
+const product = await db.createProduct({
+  name: '海鸥表',
+  description: '精美腕表',
+  price: 2999,
+  sku: 'SG-001',
+  category_id: 'luxury',
+  images: ['product1.jpg'],
+  stock_quantity: 10,
+  tags: ['奢侈品', '腕表']
+});
+```
+
+#### 查询记录
+```typescript
+// 根据ID查找
+const user = await db.findUserById('user123');
+const product = await db.findProductById('product456');
+
+// 条件查询
+const activeProducts = await db.findProducts({
   where: [{ field: 'status', operator: '=', value: 'active' }],
-  limit: 10
-});
-
-// 创建订单
-const order = await db.createOrder({
-  user_id: user.id,
-  order_number: 'SG20241201001',
-  subtotal: 2888,
-  shipping_fee: 15,
-  tax_fee: 288.8,
-  discount_amount: 0,
-  total_amount: 3191.8,
-  payment_method: 'alipay',
-  shipping_address: {
-    name: '张三',
-    phone: '13800138000',
-    province: '北京市',
-    city: '北京市',
-    district: '朝阳区',
-    street: '建国路88号',
-    postal_code: '100000',
-    is_default: true
-  },
-  ordered_at: new Date().toISOString()
-});
-```
-
-## 🛠️ 核心功能
-
-### 用户管理
-
-```typescript
-// 用户注册
-const newUser = await db.createUser({
-  email: 'user@example.com',
-  password_hash: await hashPassword('password'),
-  name: '用户姓名',
-  phone: '手机号码'
-});
-
-// 用户查询
-const user = await db.findUserByEmail('user@example.com');
-
-// 用户更新
-await db.updateUser(userId, { name: '新姓名' });
-```
-
-### 商品管理
-
-```typescript
-// 商品查询
-const products = await db.findProducts({
-  where: [
-    { field: 'category_id', operator: '=', value: categoryId },
-    { field: 'status', operator: '=', value: 'active' }
-  ],
-  orderBy: [{ field: 'created_at', direction: 'desc' }],
-  limit: 20
-});
-
-// 商品搜索
-const searchResults = await db.searchProducts('海鸥机械表');
-
-// 库存更新
-await db.updateProductStock(productId, newQuantity);
-```
-
-### 订单处理
-
-```typescript
-// 创建订单
-const order = await db.createOrder(orderData);
-
-// 查询用户订单
-const userOrders = await db.findOrdersByUser(userId, {
-  orderBy: [{ field: 'ordered_at', direction: 'desc' }]
-});
-
-// 更新订单状态
-await db.updateOrderStatus(orderId, 'paid');
-```
-
-### 购物车操作
-
-```typescript
-// 添加到购物车
-await db.addToCart(userId, sessionId, productId, quantity);
-
-// 获取购物车内容
-const cartItems = await db.getCartItems(userId, sessionId);
-
-// 清空购物车
-await db.clearCart(userId, sessionId);
-```
-
-## 🔧 高级功能
-
-### 查询构建器
-
-```typescript
-// 复杂查询示例
-const expensiveWatches = await db.findProducts({
-  where: [
-    { field: 'price', operator: '>', value: 5000 },
-    { field: 'brand', operator: '=', value: '海鸥' },
-    { field: 'status', operator: '=', value: 'active' }
-  ],
-  orderBy: [
-    { field: 'price', direction: 'desc' },
-    { field: 'created_at', direction: 'desc' }
-  ],
   limit: 10,
   offset: 0
 });
+
+// 搜索功能
+const searchResults = await db.searchProducts('海鸥');
 ```
 
-### 事务处理
+#### 更新记录
+```typescript
+// 更新用户信息
+await db.updateUser('user123', {
+  full_name: '新的用户名',
+  phone: '13800138000'
+});
+
+// 更新产品库存
+await db.updateProductStock('product456', 5);
+```
+
+#### 删除记录
+```typescript
+// 删除用户
+await db.deleteUser('user123');
+```
+
+## 🛒 购物车操作
 
 ```typescript
-// 使用事务处理复杂操作
-await db.getEngine().transaction([
-  {
-    type: 'update',
-    table: 'products',
-    conditions: [{ field: 'id', operator: '=', value: productId }],
-    data: { stock_quantity: newQuantity }
-  },
-  {
-    type: 'insert',
-    table: 'logs',
-    data: {
-      level: 'info',
-      action: 'stock_update',
-      entity_type: 'product',
-      entity_id: productId,
-      message: `库存更新为 ${newQuantity}`
-    }
+// 添加商品到购物车
+await db.addToCart('user123', null, 'product456', 2);
+
+// 游客购物车（使用会话ID）
+await db.addToCart(null, 'session789', 'product456', 1);
+
+// 获取购物车商品
+const cartItems = await db.getCartItems('user123', null);
+
+// 清空购物车
+await db.clearCart('user123', null);
+```
+
+## 📋 订单管理
+
+```typescript
+// 创建订单
+const order = await db.createOrder({
+  order_number: 'SG1703123456789',
+  user_id: 'user123',
+  status: 'pending',
+  payment_status: 'pending',
+  payment_method: 'alipay',
+  subtotal: 2999,
+  shipping_cost: 15,
+  tax_amount: 0,
+  total_amount: 3014,
+  shipping_address: {
+    name: '张三',
+    phone: '13800138000',
+    province: '上海市',
+    city: '上海市',
+    district: '黄浦区',
+    street: '南京路100号'
   }
-]);
+});
+
+// 查询用户订单
+const userOrders = await db.findOrdersByUser('user123');
+
+// 更新订单状态
+await db.updateOrderStatus('order789', 'paid');
 ```
 
-### 数据备份与恢复
+## 🔍 高级查询
 
+### 查询选项
 ```typescript
-// 创建备份
-const backupPath = await db.backup();
-console.log(`备份已创建: ${backupPath}`);
+interface QueryOptions {
+  where?: QueryCondition[];     // 查询条件
+  orderBy?: string;            // 排序字段
+  orderDirection?: 'asc' | 'desc'; // 排序方向
+  limit?: number;              // 限制数量
+  offset?: number;             // 偏移量
+}
 
-// 恢复数据
-await db.restore(backupPath);
-
-// 健康检查
-const isHealthy = await db.healthCheck();
+interface QueryCondition {
+  field: string;               // 字段名
+  operator: '=' | '!=' | '>' | '<' | '>=' | '<=' | 'like';
+  value: any;                  // 值
+}
 ```
 
-## 📈 数据库迁移
-
-### 从JSON迁移到MySQL
-
+### 查询示例
 ```typescript
-import { DataMigrator, MigrationConfigGenerator } from './database/migrations';
-
-// 生成MySQL配置
-const mysqlConfig = MigrationConfigGenerator.generateMySQLConfig(
-  'localhost',
-  3306,
-  'username',
-  'password',
-  'seagull_watch_db'
-);
-
-// 执行迁移
-const migrator = new DataMigrator(currentConfig, mysqlConfig);
-await migrator.migrateJsonToMySQL(currentData);
-```
-
-### 迁移脚本生成
-
-```typescript
-// 生成完整的MySQL迁移脚本
-const migrator = new DataMigrator(sourceConfig, targetConfig);
-const sqlScript = migrator.generateMigrationSQL(currentData);
-
-// 保存为SQL文件
-await fs.writeFile('migration.sql', sqlScript);
-```
-
-## 🔒 安全考虑
-
-### 当前实现（JSON数据库）
-- 文件级别的访问控制
-- 简单的数据验证
-- 基础的备份机制
-
-### 生产环境建议
-- 使用关系型数据库（MySQL/PostgreSQL）
-- 实施严格的访问控制和权限管理
-- 数据加密（传输和存储）
-- 定期安全审计
-- 完善的备份和灾难恢复计划
-
-## 📋 性能优化
-
-### 索引策略
-系统预定义了关键字段的索引：
-- 用户邮箱唯一索引
-- 商品SKU唯一索引  
-- 订单号唯一索引
-- 外键关联索引
-- 常用查询字段索引
-
-### 查询优化
-```typescript
-// 使用索引友好的查询
+// 分页查询
 const products = await db.findProducts({
+  where: [{ field: 'status', operator: '=', value: 'active' }],
+  orderBy: 'created_at',
+  orderDirection: 'desc',
+  limit: 20,
+  offset: 0
+});
+
+// 价格范围查询
+const expensiveProducts = await db.findProducts({
   where: [
-    { field: 'category_id', operator: '=', value: categoryId }, // 使用索引
-    { field: 'status', operator: '=', value: 'active' }        // 使用索引
+    { field: 'price', operator: '>=', value: 5000 },
+    { field: 'price', operator: '<=', value: 10000 }
   ]
 });
 
-// 避免全表扫描
+// 模糊搜索
 const searchResults = await db.findProducts({
-  where: [
-    { field: 'name', operator: 'like', value: keyword }        // 可能较慢
-  ],
-  limit: 50 // 限制结果数量
+  where: [{ field: 'name', operator: 'like', value: '%海鸥%' }]
 });
 ```
 
-## 📊 监控与维护
+## 🔧 数据库配置
 
-### 统计信息
+### 存储配置
+```typescript
+const config = {
+  storageKey: 'seagull-watch-db',  // localStorage键名
+  options: {
+    autoBackup: true,              // 自动备份
+    maxBackups: 24,                // 最大备份数
+    enableLogging: true            // 启用日志
+  }
+};
+```
+
+### 数据初始化
+系统首次运行时会自动加载初始数据：
+- 产品分类
+- 示例产品
+- 测试用户
+
+## 🔄 数据备份与恢复
 
 ```typescript
-// 获取数据库统计
-const stats = await db.getDashboardStats();
-console.log('数据库统计:', stats);
-// 输出: { users: 100, products: 50, orders: 200, ... }
+// 创建备份
+const backupData = await db.backup();
+
+// 恢复数据
+await db.restore(backupData);
 ```
 
-### 日志记录
+## 🛠️ 开发工具
 
-系统自动记录关键操作：
-- 用户注册和登录
-- 订单创建和状态变更
-- 支付处理
-- 库存变更
-- 系统错误
+### 调试页面
+访问 `/debug-storage.html` 查看数据库内容
 
-### 定期维护
+### 清理工具
+访问 `/clear-storage.html` 清除所有数据
 
-```typescript
-// 清理过期的购物车项目
-await db.getEngine().delete('cart_items', [
-  { field: 'updated_at', operator: '<', value: thirtyDaysAgo }
-]);
-
-// 归档历史日志
-await db.getEngine().delete('logs', [
-  { field: 'created_at', operator: '<', value: sixMonthsAgo }
-]);
+### 控制台操作
+```javascript
+// 浏览器控制台
+const db = window.DatabaseManager?.getInstance();
+console.log(await db.findProducts());
 ```
 
-## 🚀 部署配置
+## ⚠️ 注意事项
 
-### 开发环境
-```json
-{
-  "type": "json",
-  "filename": "database/dev-db.json",
-  "autoBackup": true,
-  "backupInterval": 30
-}
-```
+1. **数据持久化** - 数据存储在localStorage中，清除浏览器数据会丢失
+2. **存储限制** - localStorage通常有5-10MB大小限制
+3. **并发控制** - 单线程操作，无需考虑并发问题
+4. **数据验证** - 客户端验证，生产环境需要服务器端验证
+5. **安全性** - 敏感数据需要加密处理
 
-### 生产环境
-```json
-{
-  "type": "mysql",
-  "host": "db.example.com",
-  "port": 3306,
-  "database": "seagull_production",
-  "autoBackup": true,
-  "backupInterval": 360
-}
-```
+## 🚀 最佳实践
 
-## ❓ 常见问题
-
-### Q: 如何处理并发访问？
-A: JSON数据库适合单进程访问。生产环境建议迁移到支持并发的关系型数据库。
-
-### Q: 数据文件过大怎么办？
-A: 实施数据归档策略，定期清理历史数据，或考虑迁移到关系型数据库。
-
-### Q: 如何确保数据一致性？
-A: 使用事务处理关键操作，定期执行数据完整性检查。
-
-### Q: 备份策略是什么？
-A: 自动定期备份，保留多个版本，支持手动备份和恢复。
+1. **错误处理** - 使用try-catch处理异步操作
+2. **数据验证** - 创建前验证数据格式
+3. **性能优化** - 合理使用分页和索引
+4. **备份策略** - 定期备份重要数据
+5. **测试数据** - 开发时使用独立的存储键名
 
 ---
 
-*这个数据库系统为海鸥腕表商城提供了完整的数据管理功能，从轻量级JSON文件开始，为未来升级到企业级数据库做好了充分准备。* 
+**注意**: 此数据库系统适用于演示和小型应用，生产环境建议使用专业数据库。 
