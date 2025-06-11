@@ -25,13 +25,13 @@
 ### 第一步：准备收款码
 1. 打开支付宝，进入"收钱"功能，截图保存收款码
 2. 打开微信，进入"收付款" → "二维码收款"，截图保存收款码
-3. 将两个收款码图片分别命名为 `alipay-qr.jpg` 和 `wechat-qr.jpg`
+3. 将两个收款码图片分别命名为 `alipay-qr.png` 和 `wechat-qr.png`
 
 ### 第二步：上传收款码图片
 ```bash
 # 将收款码图片复制到项目目录
-cp /path/to/your/alipay-qr.jpg public/images/payment/
-cp /path/to/your/wechat-qr.jpg public/images/payment/
+cp /path/to/your/alipay-qr.png public/images/payment/
+cp /path/to/your/wechat-qr.png public/images/payment/
 ```
 
 ### 第三步：配置银行账户信息
@@ -53,12 +53,12 @@ bank: {
 alipay: {
   account: 'your-alipay@example.com',    // 改为您的支付宝账号
   name: '您的店铺名称',
-      qrCodeUrl: 'images/payment/alipay-qr.jpg'
+  qrCodeUrl: 'images/payment/alipay-qr.png'
 },
 wechat: {
   account: 'Your-WeChat-ID',             // 改为您的微信号
   name: '您的店铺名称',
-      qrCodeUrl: 'images/payment/wechat-qr.jpg'
+  qrCodeUrl: 'images/payment/wechat-qr.png'
 }
 ```
 

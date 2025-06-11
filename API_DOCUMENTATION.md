@@ -244,11 +244,11 @@
 {
   alipay: {
     account: 'seagull_watch@alipay.com',
-    qrCodeUrl: '/images/payment/alipay-qr.jpg'
+    qrCodeUrl: '/images/payment/alipay-qr.png'
   },
   wechat: {
     account: 'SeagullWatch2024',
-    qrCodeUrl: '/images/payment/wechat-qr.jpg'
+    qrCodeUrl: '/images/payment/wechat-qr.png'
   },
   bank: {
     bankName: '中国工商银行',

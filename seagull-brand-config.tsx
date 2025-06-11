@@ -11,7 +11,7 @@ export const BRAND_INFO: BrandInfo = {
   tagline: "中国制表行业的开创者和领先者",
   logoSvg: (
     <img 
-              src="./images/seagull-logo.jpg" 
+              src="./images/seagull-logo.png" 
       alt="海鸥表 SEAGULL Logo" 
       width="70" 
       height="50" 

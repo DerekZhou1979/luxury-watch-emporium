@@ -5,7 +5,7 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-# 设置GITHUB_TOKEN权限
+# 设置GitHub Pages权限
 permissions:
   contents: read
   pages: write
@@ -30,23 +30,8 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: 🔧 设置GitHub Pages
-        uses: actions/configure-pages@v5
-
       - name: 📦 安装依赖
         run: npm ci
-
-      - name: 📊 检查源文件 (优化后)
-        run: |
-          echo "=== 源码图片目录统计 ==="
-          if [ -d "public/images" ]; then
-            echo "图片数量: $(find public/images -type f | wc -l)"
-            echo "总大小: $(du -sh public/images)"
-            echo "主要图片文件:"
-            ls -lah public/images/ | grep -E "\.(jpg|jpeg|png|svg)$" | head -5
-          else
-            echo "⚠️  public/images 目录不存在"
-          fi
 
       - name: 🔨 构建项目
         run: npm run build
@@ -54,28 +39,7 @@ jobs:
       - name: 🚫 添加 .nojekyll 文件
         run: touch ./dist/.nojekyll
 
-      - name: 📋 验证构建结果 (优化后)
-        run: |
-          echo "=== 构建目录结构 ==="
-          ls -la dist/
-          echo ""
-          echo "=== 构建后图片统计 ==="
-          if [ -d "dist/images" ]; then
-            echo "✅ images目录存在"
-            echo "图片数量: $(find dist/images -type f | wc -l)"
-            echo "总大小: $(du -sh dist/images)"
-            echo "测试关键图片文件:"
-            ls -la dist/images/ | grep -E "(seagull_team_main|seagull-logo)" || echo "关键图片检查完成"
-          else
-            echo "❌ images目录不存在 - 这是一个问题！"
-            exit 1
-          fi
-          echo ""
-          echo "=== 其他重要文件 ==="
-          ls -la dist/.nojekyll && echo "✅ .nojekyll 文件存在"
-          ls -la dist/database/ 2>/dev/null && echo "✅ database 目录存在" || echo "⚠️  database 目录不存在"
-
-      - name: 📤 上传GitHub Pages产物
+      - name: 📤 上传构建产物
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
@@ -90,10 +54,4 @@ jobs:
     steps:
       - name: 🚀 部署到GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
-
-      - name: 🎉 部署完成通知
-        run: |
-          echo "🎉 部署成功完成！"
-          echo "🌐 网站地址: ${{ steps.deployment.outputs.page_url }}"
-          echo "🖼️  测试图片URL: ${{ steps.deployment.outputs.page_url }}images/seagull_team_main.jpg" 
+        uses: actions/deploy-pages@v4 
