@@ -32,6 +32,7 @@ import LoginPage from './pages/login';
 import RegisterPage from './pages/register';
 import UserProfilePage from './pages/user-profile';
 import AboutPage from './pages/brand-story';
+import ImageTest from './pages/image-test';
 import NotFoundPage from './pages/page-not-found';
 
 /**
@@ -148,6 +149,9 @@ const App: React.FC = () => {
               
               {/* 品牌信息页面 */}
               <Route path="/about" element={<AboutPage />} />
+              
+              {/* 图片测试页面 */}
+              <Route path="/image-test" element={<ImageTest />} />
               
               {/* 404错误页面 */}
               <Route path="*" element={<NotFoundPage />} />
