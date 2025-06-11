@@ -1,14 +1,6 @@
 /**
- * 海鸥表电商平台 - 主应用组件
- * 
- * 这是应用的根组件，负责：
- * 1. 数据库初始化和管理
- * 2. 路由配置和管理
- * 3. 全局状态提供（认证上下文）
- * 4. 错误处理和加载状态显示
- * 
- * @author AI Assistant
- * @version 1.0.0
+ * 海鸥表电商平台主应用
+ * 数据库初始化、路由管理、认证状态、错误处理
  */
 
 import React, { useEffect, useState } from 'react';
@@ -35,13 +27,7 @@ import AboutPage from './pages/brand-story';
 import NotFoundPage from './pages/page-not-found';
 
 /**
- * 主应用组件
- * 
- * 功能特性：
- * - 使用HashRouter避免服务器配置问题
- * - 数据库自动初始化和错误处理
- * - 响应式加载状态显示
- * - 全局认证状态管理
+ * 主应用组件 - HashRouter路由，数据库初始化，认证管理
  */
 const App: React.FC = () => {
   // 数据库初始化状态
@@ -49,10 +35,7 @@ const App: React.FC = () => {
   // 数据库错误状态
   const [dbError, setDbError] = useState<string | null>(null);
 
-  /**
-   * 初始化数据库
-   * 在组件挂载时自动执行，确保数据库准备就绪
-   */
+  // 数据库初始化
   useEffect(() => {
     const initDatabase = async () => {
       try {
@@ -69,10 +52,7 @@ const App: React.FC = () => {
     initDatabase();
   }, []);
 
-  /**
-   * 数据库错误处理界面
-   * 显示友好的错误信息和重试选项
-   */
+  // 数据库错误处理界面
   if (dbError) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-red-50">
@@ -91,10 +71,7 @@ const App: React.FC = () => {
     );
   }
 
-  /**
-   * 数据库初始化加载界面
-   * 显示优雅的加载动画和提示信息
-   */
+  // 数据库初始化加载界面
   if (!isDbInitialized) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-brand-bg">
@@ -113,10 +90,7 @@ const App: React.FC = () => {
     );
   }
 
-  /**
-   * 主应用渲染
-   * 包含完整的路由配置和布局结构
-   */
+  // 主应用路由和布局
   return (
     <HashRouter>
       <AuthProvider>

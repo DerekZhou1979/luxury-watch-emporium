@@ -1,18 +1,6 @@
 /**
- * 海鸥表电商平台 - 简化版支付服务
- * 
- * 这是一个简化的支付服务实现，提供基本的支付功能和订单管理。
- * 支持支付宝、微信支付和银行转账三种支付方式。
- * 
- * 主要功能：
- * - 创建支付订单和订单项目
- * - 生成支付二维码和账户信息
- * - 计算运费和税费
- * - 订单查询和状态管理
- * - 支付方式配置和转换
- * 
- * @author AI Assistant
- * @version 1.0.0
+ * 简化版支付服务
+ * 支付宝、微信、银行转账，订单管理，运费税费计算
  */
 
 import { DatabaseManager } from '../database/database-manager';
@@ -26,10 +14,7 @@ import {
 // 获取数据库管理器实例
 const db = DatabaseManager.getInstance();
 
-/**
- * 支付配置常量
- * 包含各种支付方式的账户信息和二维码路径
- */
+// 支付配置
 const PAYMENT_CONFIG = {
   alipay: {
     account: 'seagull_watch@alipay.com',
@@ -158,32 +143,14 @@ export class PaymentServiceSimple {
     }
   }
 
-  /**
-   * 生成唯一订单号
-   * 
-   * 格式：SG + 13位时间戳 + 3位随机数
-   * 例如：SG1703123456789123
-   * 
-   * @returns {string} 唯一的订单号
-   */
+  // 生成唯一订单号：SG + 时间戳 + 随机数
   static generateOrderId(): string {
     const timestamp = Date.now();
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     return `SG${timestamp}${random}`;
   }
 
-  /**
-   * 计算运费
-   * 
-   * 运费规则：
-   * - 订单金额 >= 5000元：免运费
-   * - 偏远地区（新疆、西藏等）：25元
-   * - 其他地区：15元
-   * 
-   * @param subtotal 商品小计金额
-   * @param province 收货省份
-   * @returns {number} 运费金额
-   */
+  // 计算运费：>=5000免费，偏远25元，普通15元
   static calculateShipping(subtotal: number, province: string): number {
     // 满额免运费
     if (subtotal >= 5000) {
@@ -200,16 +167,7 @@ export class PaymentServiceSimple {
     return 15;
   }
 
-  /**
-   * 计算税费
-   * 
-   * 税费规则：
-   * - 订单金额 >= 50000元：收取10%的奢侈品税
-   * - 其他情况：免税
-   * 
-   * @param subtotal 商品小计金额
-   * @returns {number} 税费金额
-   */
+  // 计算税费：>=50000收取10%奢侈品税
   static calculateTax(subtotal: number): number {
     if (subtotal >= 50000) {
       return subtotal * 0.1;
