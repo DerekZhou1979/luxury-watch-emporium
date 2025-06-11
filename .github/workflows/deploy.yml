@@ -39,19 +39,6 @@ jobs:
       - name: 🚫 添加 .nojekyll 文件
         run: touch ./dist/.nojekyll
 
-      - name: 🔍 检查构建结果
-        run: |
-          echo "=== 检查dist目录结构 ==="
-          ls -la dist/
-          echo "=== 检查images目录 ==="
-          ls -la dist/images/ | head -10
-          echo "=== 检查images-minimal目录 ==="
-          ls -la dist/images-minimal/
-          echo "=== 统计文件数量 ==="
-          find dist/ -type f | wc -l
-          echo "=== 检查总大小 ==="
-          du -sh dist/
-
       - name: 📤 上传构建产物
         uses: actions/upload-pages-artifact@v3
         with:
