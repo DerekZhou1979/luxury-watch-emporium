@@ -16,9 +16,9 @@ const THEMES = {
     icon: '🎯'
   },
   'tech-future': {
-    name: '科技未来',
-    description: '渐变背景，发光效果，未来科技感',
-    icon: '🚀'
+    name: '科技绿洲',
+    description: '浅绿背景，科技感强，清新自然',
+    icon: '🌿'
   }
 } as const;
 
@@ -321,8 +321,8 @@ export const ThemeSwitcher: React.FC = () => {
         }
 
         .theme-tech-future {
-          background: linear-gradient(135deg, #0F0F23, #1E1B4B);
-          color: #8B5CF6;
+          background: linear-gradient(135deg, #064E3B, #065F46);
+          color: #10B981;
           position: relative;
         }
 
@@ -333,7 +333,7 @@ export const ThemeSwitcher: React.FC = () => {
           left: 0;
           right: 0;
           bottom: 0;
-          background: linear-gradient(45deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.2));
+          background: linear-gradient(45deg, rgba(16, 185, 129, 0.2), rgba(34, 197, 94, 0.2));
           border-radius: inherit;
           opacity: 0;
           transition: opacity 0.3s ease;
@@ -414,7 +414,7 @@ export const ThemeSwitcher: React.FC = () => {
           }
         }
 
-        /* 科技未来主题的特殊效果 */
+        /* 科技绿洲主题的特殊效果 */
         :global([data-theme="tech-future"]) .theme-toggle-btn {
           background: linear-gradient(135deg, var(--brand-surface), var(--brand-surface-light));
           border-color: var(--brand-primary);
@@ -423,7 +423,7 @@ export const ThemeSwitcher: React.FC = () => {
         :global([data-theme="tech-future"]) .theme-toggle-btn:hover {
           box-shadow: 
             var(--shadow-xl),
-            0 0 20px rgba(139, 92, 246, 0.3);
+            0 0 20px rgba(16, 185, 129, 0.3);
         }
 
         /* 主题切换动画 */
