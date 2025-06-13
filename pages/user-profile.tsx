@@ -196,7 +196,7 @@ const UserProfilePage: React.FC = () => {
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-2xl font-semibold text-brand-text">我的订单</h2>
                   <Link 
-                    to="/orders"
+                    to="/user-center#orders"
                     className="text-brand-primary hover:underline"
                   >
                     查看全部订单 →

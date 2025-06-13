@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import ProductCard from '../components/watch-product-card';
 import LoadingSpinner from '../components/loading-indicator';
@@ -11,40 +11,62 @@ const ProductsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
   const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<number>(Date.now());
   
   const selectedCategory = searchParams.get('category') as ProductCategory | null;
   const { addItem } = useCart();
 
+  // 获取分类列表
   useEffect(() => {
     const fetchCategories = async () => {
-        try {
-            const fetchedCategories = await databaseProductService.getProductCategories();
-            setCategories(fetchedCategories);
-        } catch (error) {
-            console.error("Failed to fetch categories:", error);
-        }
+      try {
+        const fetchedCategories = await databaseProductService.getProductCategories();
+        const uniqueCategories = Array.from(new Set(fetchedCategories));
+        setCategories(uniqueCategories);
+      } catch (error) {
+        console.error("获取分类失败:", error);
+      }
     };
     fetchCategories();
   }, []);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setIsLoading(true);
-      try {
-        const fetchedProducts = await databaseProductService.getProducts(selectedCategory || undefined);
+  // 获取产品列表的函数
+  const fetchProducts = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      console.log('正在获取产品，分类:', selectedCategory);
+      const fetchedProducts = await databaseProductService.getProducts(selectedCategory || undefined);
+      console.log('获取到的产品数量:', fetchedProducts.length);
+      
+      // 强制更新状态
+      setProducts([]); // 先清空当前列表
+      setTimeout(() => {
         setProducts(fetchedProducts);
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchProducts();
+        setLastUpdated(Date.now());
+      }, 0);
+    } catch (error) {
+      console.error("获取产品失败:", error);
+      setProducts([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, [selectedCategory]);
 
+  // 监听分类变化
+  useEffect(() => {
+    console.log('分类变化，触发刷新');
+    fetchProducts();
+  }, [selectedCategory, fetchProducts]);
+
+  // 监听lastUpdated变化，确保UI更新
+  useEffect(() => {
+    console.log('产品列表已更新，时间戳:', lastUpdated);
+  }, [lastUpdated]);
+
   const handleCategoryChange = (category: ProductCategory | null) => {
+    console.log('切换分类:', category);
     if (category) {
-      setSearchParams({ category: category });
+      setSearchParams({ category });
     } else {
       setSearchParams({});
     }
@@ -52,7 +74,6 @@ const ProductsPage: React.FC = () => {
 
   const handleAddToCart = (product: Product) => {
     addItem(product);
-    // 可选择显示"已添加到购物车"提示
   };
 
   return (
@@ -89,20 +110,24 @@ const ProductsPage: React.FC = () => {
         ))}
       </div>
 
+      {/* 产品列表 */}
       {isLoading ? (
-        <LoadingSpinner message="正在加载腕表..." />
+        <div className="flex justify-center items-center py-12">
+          <LoadingSpinner />
+        </div>
       ) : products.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" key={lastUpdated}>
+          {products.map(product => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onAddToCart={() => handleAddToCart(product)}
+            />
           ))}
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-xl text-brand-text-secondary mb-4">未找到符合条件的腕表。</p>
-          <Link to="/products" onClick={() => handleCategoryChange(null)} className="text-brand-primary hover:underline">
-            查看全部腕表
-          </Link>
+          <p className="text-brand-text-secondary">暂无相关产品</p>
         </div>
       )}
     </div>

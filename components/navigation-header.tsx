@@ -40,10 +40,11 @@ const Header: React.FC = () => {
           {isAuthenticated && user ? (
             <div className="flex items-center space-x-3">
               <Link 
-                to="/profile" 
-                className="text-brand-text-secondary hover:text-brand-primary transition-colors duration-200"
+                to="/user-center" 
+                className="text-brand-text-secondary hover:text-brand-primary transition-colors duration-200 flex items-center space-x-1"
               >
-                欢迎，{user.name.length > 6 ? user.name.substring(0, 6) + '...' : user.name}
+                <span>👤</span>
+                <span>欢迎，{user.name.length > 6 ? user.name.substring(0, 6) + '...' : user.name}</span>
               </Link>
             </div>
           ) : (
@@ -104,11 +105,11 @@ const Header: React.FC = () => {
               {isAuthenticated && user ? (
                 <>
                   <Link
-                    to="/profile"
+                    to="/user-center"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block px-3 py-2 rounded-md text-base font-medium text-brand-text-secondary hover:bg-gray-700 hover:text-brand-primary"
                   >
-                    个人中心
+                    👤 个人中心
                   </Link>
                 </>
               ) : (

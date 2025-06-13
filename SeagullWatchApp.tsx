@@ -23,6 +23,7 @@ import OrdersPage from './pages/orders';
 import LoginPage from './pages/login';
 import RegisterPage from './pages/register';
 import UserProfilePage from './pages/user-profile';
+import UserCenterPage from './pages/user-center';
 import AboutPage from './pages/brand-story';
 import NotFoundPage from './pages/page-not-found';
 
@@ -62,7 +63,7 @@ const App: React.FC = () => {
           <p className="text-gray-600 mb-6">{dbError}</p>
           <button 
             onClick={() => window.location.reload()} 
-            className="px-6 py-3 bg-brand-gold text-white rounded-lg hover:bg-opacity-90 transition-all duration-200 font-medium"
+            className="px-6 py-3 bg-brand-primary text-brand-bg rounded-lg hover:bg-brand-primary-dark transition-all duration-200 font-medium"
           >
             🔄 重新加载页面
           </button>
@@ -77,13 +78,13 @@ const App: React.FC = () => {
       <div className="flex items-center justify-center min-h-screen bg-brand-bg">
         <div className="text-center p-8">
           {/* 加载动画 */}
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-brand-gold border-t-transparent mb-6"></div>
-          <h2 className="text-2xl font-semibold text-brand-navy mb-2">🕰️ 正在初始化海鸥表系统</h2>
-          <p className="text-gray-600">正在加载产品数据和用户信息...</p>
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-brand-primary border-t-transparent mb-6"></div>
+          <h2 className="text-2xl font-semibold text-brand-text mb-2">🕰️ 正在初始化海鸥表系统</h2>
+          <p className="text-brand-text-secondary">正在加载产品数据和用户信息...</p>
           <div className="mt-4 flex justify-center space-x-1">
-            <div className="h-2 w-2 bg-brand-gold rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-            <div className="h-2 w-2 bg-brand-gold rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-            <div className="h-2 w-2 bg-brand-gold rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+            <div className="h-2 w-2 bg-brand-primary rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+            <div className="h-2 w-2 bg-brand-primary rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+            <div className="h-2 w-2 bg-brand-primary rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
           </div>
         </div>
       </div>
@@ -119,6 +120,7 @@ const App: React.FC = () => {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/profile" element={<UserProfilePage />} />
+              <Route path="/user-center" element={<UserCenterPage />} />
               
               {/* 品牌信息页面 */}
               <Route path="/about" element={<AboutPage />} />

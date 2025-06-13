@@ -2,7 +2,7 @@ import React from 'react'; // JSX支持所需
 import { BrandInfo } from './seagull-watch-types';
 
 // API密钥错误提示信息
-export const API_KEY_ERROR_MESSAGE = "API Key not configured. Please set the API_KEY environment variable.";
+export const API_KEY_ERROR_MESSAGE = "AIzaSyBga7fAogM-RZlTQ0Kyl6_HxD00qZ0uSQc";
 
 // 品牌信息配置
 export const BRAND_INFO: BrandInfo = {
@@ -29,7 +29,7 @@ export const NAVIGATION_LINKS = [
   { name: '首页', path: '/' },
   { name: '全部腕表', path: '/products' },
   { name: '品牌故事', path: '/about' },
-  { name: '我的订单', path: '/orders' },
+  { name: '个人中心', path: '/user-center' },
   // { name: '联系我们', path: '/contact' }, // 可后续添加
 ];
 

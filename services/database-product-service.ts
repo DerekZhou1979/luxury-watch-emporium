@@ -43,18 +43,27 @@ export const databaseProductService = {
   // 获取产品列表（可按分类筛选）
   getProducts: async (category?: ProductCategory): Promise<Product[]> => {
     try {
+      console.log('开始获取产品，分类:', category);
+      
       // 获取所有分类信息
       const categories = await db.findCategories();
+      console.log('获取到的分类数量:', categories.length);
       
       let products: Product[] = [];
 
       if (category) {
         // 通过反向映射找到对应的slug
         const targetSlug = reverseCategoryMapping[category];
+        console.log('目标分类slug:', targetSlug);
+        
         const targetCategory = categories.find(cat => cat.slug === targetSlug);
+        console.log('找到目标分类:', targetCategory?.name);
 
         if (targetCategory) {
+          // 只获取指定分类的产品
           const productRecords = await db.findProductsByCategory(targetCategory.id);
+          console.log('获取到的产品记录数量:', productRecords.length);
+          
           products = productRecords
             .filter(p => p.status === 'active')
             .map(record => convertProductRecord(record, targetCategory.slug));
@@ -64,6 +73,7 @@ export const databaseProductService = {
         const productRecords = await db.findProducts({
           where: [{ field: 'status', operator: '=', value: 'active' }]
         });
+        console.log('获取到的所有产品记录数量:', productRecords.length);
 
         products = [];
         for (const record of productRecords) {
@@ -74,6 +84,7 @@ export const databaseProductService = {
         }
       }
 
+      console.log('最终返回的产品数量:', products.length);
       return products;
     } catch (error) {
       console.error('获取产品列表失败:', error);
@@ -111,12 +122,15 @@ export const databaseProductService = {
         where: [{ field: 'status', operator: '=', value: 'active' }]
       });
       
-      return categories
+      // 确保分类不重复且有效
+      const uniqueCategories = categories
         .map(cat => categoryMapping[cat.slug])
-        .filter(Boolean);
+        .filter((cat): cat is ProductCategory => cat !== undefined);
+      
+      return uniqueCategories;
     } catch (error) {
       console.error('获取产品分类失败:', error);
-      return Object.values(ProductCategory);
+      return [];
     }
   },
 

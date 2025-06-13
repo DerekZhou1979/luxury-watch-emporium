@@ -282,7 +282,7 @@ const PaymentPage: React.FC = () => {
             </button>
             
             <button
-              onClick={() => navigate('/orders')}
+              onClick={() => navigate('/user-center#orders')}
               className="w-full text-center text-brand-primary hover:underline"
             >
               查看我的订单
