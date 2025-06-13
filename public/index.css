@@ -827,7 +827,7 @@ a:hover {
   animation: pulse 2s infinite;
 }
 
-/* 科技绿洲主题特殊动画 */
+/* 科技未来主题特殊动画 */
 [data-theme="tech-future"] .animate-glow {
   animation: glow 2s ease-in-out infinite alternate;
 }
@@ -1268,7 +1268,7 @@ a:hover {
     0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
 
-/* 科技绿洲主题 - 全息效果 */
+/* 科技未来主题 - 全息效果 */
 [data-theme="tech-future"] .card::before {
   content: '';
   position: absolute;
@@ -1279,7 +1279,7 @@ a:hover {
   background: linear-gradient(
     45deg,
     transparent 30%,
-    rgba(16, 185, 129, 0.1) 50%,
+    rgba(139, 92, 246, 0.1) 50%,
     transparent 70%
   );
   opacity: 0;
