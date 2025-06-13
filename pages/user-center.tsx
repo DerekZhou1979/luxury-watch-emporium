@@ -3,12 +3,11 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/use-auth';
 import { PaymentServiceSimple } from '../services/payment-service-simple';
 import { Order, OrderStatus } from '../seagull-watch-types';
-import { DatabaseManager } from '../database/database-manager';
 
 // 个人中心子组件
-import MyOrders from '../components/user-center/my-orders';
-import UserSettings from '../components/user-center/user-settings';
-import RecommendedProducts from '../components/user-center/recommended-products';
+import MyOrders from '../components/user-center/my-orders.tsx';
+import UserSettings from '../components/user-center/user-settings.tsx';
+import RecommendedProducts from '../components/user-center/recommended-products.tsx';
 
 const UserCenterPage: React.FC = () => {
   const navigate = useNavigate();

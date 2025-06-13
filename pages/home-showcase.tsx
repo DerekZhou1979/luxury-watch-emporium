@@ -54,8 +54,8 @@ const HomePage: React.FC = () => {
           <LoadingSpinner message="正在加载精选腕表..." />
         ) : featuredProducts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
+            {featuredProducts.map((product, index) => (
+              <ProductCard key={`featured-${product.id}-${index}`} product={product} onAddToCart={handleAddToCart} />
             ))}
           </div>
         ) : (

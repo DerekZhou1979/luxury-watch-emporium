@@ -489,7 +489,15 @@ export class DatabaseManager {
 
         // 导入产品数据
         for (const product of initialData.products) {
-          await this.engine.insert('products', product);
+          // 检查产品是否已存在（按SKU或ID检查）
+          const existingProduct = await this.findProductsBySku(product.sku) || 
+                                 await this.findProductById(product.id);
+          
+          if (!existingProduct) {
+            await this.engine.insert('products', product);
+          } else {
+            console.log('产品已存在，跳过:', product.sku, product.name);
+          }
         }
         console.log('产品导入完成:', initialData.products.length);
 

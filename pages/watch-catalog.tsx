@@ -38,12 +38,15 @@ const ProductsPage: React.FC = () => {
       const fetchedProducts = await databaseProductService.getProducts(selectedCategory || undefined);
       console.log('获取到的产品数量:', fetchedProducts.length);
       
-      // 强制更新状态
-      setProducts([]); // 先清空当前列表
-      setTimeout(() => {
-        setProducts(fetchedProducts);
-        setLastUpdated(Date.now());
-      }, 0);
+      // 去重处理，确保没有重复的产品
+      const uniqueProducts = fetchedProducts.filter((product, index, self) => 
+        index === self.findIndex(p => p.id === product.id)
+      );
+      
+      console.log('去重后的产品数量:', uniqueProducts.length);
+      
+      setProducts(uniqueProducts);
+      setLastUpdated(Date.now());
     } catch (error) {
       console.error("获取产品失败:", error);
       setProducts([]);
@@ -116,15 +119,28 @@ const ProductsPage: React.FC = () => {
           <LoadingSpinner />
         </div>
       ) : products.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" key={lastUpdated}>
-          {products.map(product => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onAddToCart={() => handleAddToCart(product)}
-            />
-          ))}
-        </div>
+        <>
+          {/* 调试信息：检查重复ID */}
+          {(() => {
+            const productIds = products.map(p => p.id);
+            const duplicateIds = productIds.filter((id, index) => productIds.indexOf(id) !== index);
+            if (duplicateIds.length > 0) {
+              console.warn('发现重复的产品ID:', duplicateIds);
+              console.warn('所有产品ID:', productIds);
+            }
+            return null;
+          })()}
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" key={lastUpdated}>
+            {products.map((product, index) => (
+              <ProductCard
+                key={`${product.id}-${index}`} // 使用组合key避免重复
+                product={product}
+                onAddToCart={() => handleAddToCart(product)}
+              />
+            ))}
+          </div>
+        </>
       ) : (
         <div className="text-center py-12">
           <p className="text-brand-text-secondary">暂无相关产品</p>
