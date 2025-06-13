@@ -2,7 +2,7 @@ import React from 'react'; // JSX支持所需
 import { BrandInfo } from './seagull-watch-types';
 
 // API密钥错误提示信息
-export const API_KEY_ERROR_MESSAGE = "AIzaSyBga7fAogM-RZlTQ0Kyl6_HxD00qZ0uSQc";
+export const API_KEY_ERROR_MESSAGE = "API密钥错误，请检查环境变量";
 
 // 品牌信息配置
 export const BRAND_INFO: BrandInfo = {
