@@ -1,3 +1,8 @@
+/* Tailwind CSS 指令 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* ========================================
    海鸥表官网样式表 - 多主题样式管理
    ======================================== */

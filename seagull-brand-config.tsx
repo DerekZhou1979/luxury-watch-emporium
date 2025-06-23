@@ -23,6 +23,7 @@ export const BRAND_INFO: BrandInfo = {
 // Gemini AI模型配置
 export const GEMINI_MODEL_TEXT = 'gemini-2.5-flash-preview-04-17';
 export const GEMINI_MODEL_IMAGE = 'imagen-3.0-generate-002'; // 图像生成模型（如需要）
+export const GEMINI_API_KEY = 'AIzaSyC1q9AcDH4lvD4sU8ribire9S3C7kX548k';//Gemini API密钥
 
 // 网站导航链接配置
 export const NAVIGATION_LINKS = [

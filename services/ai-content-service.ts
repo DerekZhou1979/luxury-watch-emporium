@@ -1,14 +1,14 @@
 
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Product } from '../types';
-import { GEMINI_MODEL_TEXT, API_KEY_ERROR_MESSAGE } from '../seagull-brand-config.tsx';
+import { GEMINI_MODEL_TEXT, GEMINI_API_KEY, API_KEY_ERROR_MESSAGE } from '../seagull-brand-config.tsx';
 
 let ai: GoogleGenAI | null = null;
-const API_KEY = process.env.API_KEY;
+// const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-if (API_KEY && API_KEY.trim() !== "") {
+if (GEMINI_API_KEY && GEMINI_API_KEY.trim() !== "") {
   try {
-    ai = new GoogleGenAI({ apiKey: API_KEY });
+    ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
   } catch (error) {
     console.error("Failed to initialize GoogleGenAI client:", error);
     // ai remains null, subsequent calls to geminiService will return API_KEY_ERROR_MESSAGE
