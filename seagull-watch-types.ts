@@ -106,6 +106,7 @@ export interface OrderItem {
   sku: string;           // 产品编码
   isCustomized: boolean;  // 是否为定制产品
   customization?: CustomizationDetails; // 定制配置详情（定制产品必需）
+  orderItemId?: string;   // 订单项ID（用于获取定制详情）
 }
 
 // 订单接口

@@ -5,7 +5,8 @@ import { useAuth } from '../hooks/use-auth';
 import { useLanguage } from '../hooks/use-language';
 import { PaymentServiceSimple } from '../services/payment-service-simple';
 import { CustomizationService } from '../services/customization-service';
-import { Order, OrderStatus, OrderItem, OrderCustomizationDetail } from '../seagull-watch-types';
+import { Order, OrderStatus, OrderItem } from '../seagull-watch-types';
+import { OrderCustomizationDetailRecord } from '../database/schema';
 
 const OrdersPage: React.FC = () => {
   const { orderId } = useParams<{ orderId?: string }>();
@@ -14,7 +15,7 @@ const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-  const [customizationDetails, setCustomizationDetails] = useState<Record<string, OrderCustomizationDetail[]>>({});
+  const [customizationDetails, setCustomizationDetails] = useState<Record<string, OrderCustomizationDetailRecord[]>>({});
 
   useEffect(() => {
     loadOrders();
@@ -31,12 +32,14 @@ const OrdersPage: React.FC = () => {
   }, [orderId, orders]);
 
   const fetchCustomizationDetails = async (order: Order) => {
-    const details: Record<string, OrderCustomizationDetail[]> = {};
+    const details: Record<string, OrderCustomizationDetailRecord[]> = {};
     
     for (const item of order.items) {
       if (item.isCustomized) {
         try {
-          const itemDetails = await CustomizationService.getOrderCustomizationDetails(item.id);
+          // 使用订单项ID或者生成一个基于订单ID和产品ID的唯一ID
+          const orderItemId = item.orderItemId || `${order.id}_${item.productId}`;
+          const itemDetails = await CustomizationService.getOrderCustomizationDetails(orderItemId);
           if (itemDetails && itemDetails.length > 0) {
             details[item.productId] = itemDetails;
           }
@@ -100,13 +103,83 @@ const OrdersPage: React.FC = () => {
   };
 
   const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleString('zh-CN', {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('zh-CN', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
+  };
+
+  const renderCustomizationDetails = (item: OrderItem) => {
+    if (!item.isCustomized || !item.customization) {
+      return null;
+    }
+
+    const customization = item.customization;
+    const isChineseMode = t.userCenter?.title === '个人中心';
+    
+    return (
+      <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200/50">
+        <div className="flex items-center space-x-2 mb-3">
+          <SettingOutlined className="text-blue-600" />
+          <span className="font-semibold text-blue-800">
+            {isChineseMode ? '定制详情' : 'Customization Details'}
+          </span>
+        </div>
+        
+        {/* 定制选项 */}
+        <div className="grid md:grid-cols-2 gap-4 mb-4">
+          {Object.entries(customization.configurations).map(([category, value]) => {
+            // 从数据库获取的定制详情
+            const itemDetails = customizationDetails[item.productId] || [];
+            const detail = itemDetails.find(d => d.category_id === category);
+            
+            const displayName = detail 
+              ? (isChineseMode ? detail.category_name : detail.category_name_en)
+              : category.replace('_', ' ');
+            
+            const displayValue = detail 
+              ? (isChineseMode ? detail.option_name : detail.option_name_en)
+              : value;
+            
+            return (
+              <div key={category} className="flex justify-between items-center py-2 px-3 bg-white rounded-md border border-blue-100">
+                <span className="text-gray-600 text-sm capitalize">{displayName}:</span>
+                <span className="font-medium text-gray-800">{displayValue}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* 价格明细 */}
+        <div className="border-t border-blue-200 pt-3">
+          <div className="space-y-2">
+            {customization.priceBreakdown.map((priceItem, index) => (
+              <div key={index} className="flex justify-between items-center text-sm">
+                <span className="text-gray-600">
+                  {priceItem.type === 'base' 
+                    ? (isChineseMode ? '基础价格' : 'Base Price')
+                    : (isChineseMode ? priceItem.name : (priceItem as any).name_en || priceItem.name)
+                  }:
+                </span>
+                <span className={`font-medium ${priceItem.type === 'base' ? 'text-gray-800' : 'text-blue-600'}`}>
+                  {priceItem.price > 0 ? `+¥${priceItem.price.toLocaleString()}` : '¥0'}
+                </span>
+              </div>
+            ))}
+            <div className="border-t border-blue-200 pt-2 flex justify-between items-center font-semibold">
+              <span className="text-gray-800">
+                {isChineseMode ? '最终价格' : 'Final Price'}:
+              </span>
+              <span className="text-blue-700 text-lg">¥{customization.finalPrice.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -182,9 +255,9 @@ const OrdersPage: React.FC = () => {
                           {item.isCustomized && (
                             <div className="flex items-center space-x-1">
                               <TagOutlined className="text-blue-600 text-xs" />
-                              <span className="text-xs text-blue-600 font-medium">
-                                {t.userCenter.title === '个人中心' ? '定制产品' : 'Customized Product'}
-                              </span>
+                                                             <span className="text-xs text-blue-600 font-medium">
+                                 {t.userCenter?.title === '个人中心' ? '定制产品' : 'Customized Product'}
+                               </span>
                             </div>
                           )}
                           <p className="text-brand-text-secondary text-sm">
