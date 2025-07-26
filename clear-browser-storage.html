@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>清除浏览器存储</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .button {
+            background: #1890ff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        .button:hover {
+            background: #40a9ff;
+        }
+        .success {
+            color: #52c41a;
+            margin: 20px 0;
+        }
+        .info {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 汉时辰制 - 数据库修复工具</h1>
+    
+    <div class="info">
+        <h3>为什么需要清除存储？</h3>
+        <p>我们刚刚添加了新的定制手表功能，需要清除旧的浏览器数据，让应用使用新的数据库结构。</p>
+        
+        <h3>清除操作包括：</h3>
+        <ul>
+            <li>清除 localStorage 中的数据库数据</li>
+            <li>清除 sessionStorage 中的临时数据</li>
+            <li>重置应用状态</li>
+        </ul>
+    </div>
+
+    <button class="button" onclick="clearStorage()">🧹 清除浏览器存储</button>
+    <button class="button" onclick="goToApp()">🚀 返回应用</button>
+
+    <div id="result"></div>
+
+    <script>
+        function clearStorage() {
+            try {
+                // 清除 localStorage
+                localStorage.clear();
+                
+                // 清除 sessionStorage  
+                sessionStorage.clear();
+                
+                // 显示成功消息
+                document.getElementById('result').innerHTML = `
+                    <div class="success">
+                        <h3>✅ 清除完成！</h3>
+                        <p>浏览器存储已清除，现在可以返回应用使用新功能了。</p>
+                    </div>
+                `;
+                
+                console.log('✅ 浏览器存储清除完成');
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <div style="color: red;">
+                        <h3>❌ 清除失败</h3>
+                        <p>错误：${error.message}</p>
+                    </div>
+                `;
+                console.error('❌ 清除存储失败:', error);
+            }
+        }
+
+        function goToApp() {
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html> 

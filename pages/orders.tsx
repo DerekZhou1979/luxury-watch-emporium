@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/use-auth';
+import { useLanguage } from '../hooks/use-language';
 import { PaymentServiceSimple } from '../services/payment-service-simple';
 import { Order, OrderStatus } from '../seagull-watch-types';
 
 const OrdersPage: React.FC = () => {
   const { orderId } = useParams<{ orderId?: string }>();
   const { user, isAuthenticated } = useAuth();
+  const { t } = useLanguage();
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -56,19 +58,19 @@ const OrdersPage: React.FC = () => {
   const getStatusText = (status: OrderStatus): string => {
     switch (status) {
       case OrderStatus.PENDING:
-        return '待支付';
+        return t.orders.pending;
       case OrderStatus.PAID:
-        return '已支付';
+        return t.orders.paid;
       case OrderStatus.PROCESSING:
-        return '处理中';
+        return t.orders.processing;
       case OrderStatus.SHIPPED:
-        return '已发货';
+        return t.orders.shipped;
       case OrderStatus.DELIVERED:
-        return '已送达';
+        return t.orders.delivered;
       case OrderStatus.CANCELLED:
-        return '已取消';
+        return t.orders.cancelled;
       default:
-        return '未知状态';
+        return 'Unknown Status';
     }
   };
 
@@ -87,7 +89,7 @@ const OrdersPage: React.FC = () => {
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-primary mx-auto"></div>
-          <p className="text-brand-text mt-4">加载订单中...</p>
+          <p className="text-brand-text mt-4">{t.orders.loadingOrders}</p>
         </div>
       </div>
     );
@@ -98,26 +100,26 @@ const OrdersPage: React.FC = () => {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-serif font-bold text-brand-text">订单详情</h1>
+          <h1 className="text-3xl font-serif font-bold text-brand-text">{t.orders.orderDetails}</h1>
           <Link 
             to="/orders" 
             className="text-brand-primary hover:underline"
           >
-            ← 返回订单列表
+            {t.orders.backToOrderList}
           </Link>
         </div>
 
         <div className="bg-brand-surface p-6 rounded-lg">
           <div className="grid md:grid-cols-2 gap-6 mb-6">
             <div>
-              <h3 className="text-lg font-semibold text-brand-text mb-3">订单信息</h3>
+              <h3 className="text-lg font-semibold text-brand-text mb-3">{t.orders.orderInfo}</h3>
               <div className="space-y-2 text-sm">
-                <p><span className="text-brand-text-secondary">订单号:</span> <span className="text-brand-text font-mono">{selectedOrder.id}</span></p>
-                <p><span className="text-brand-text-secondary">创建时间:</span> <span className="text-brand-text">{formatDate(selectedOrder.createdAt)}</span></p>
+                <p><span className="text-brand-text-secondary">{t.orders.orderNumber}:</span> <span className="text-brand-text font-mono">{selectedOrder.id}</span></p>
+                <p><span className="text-brand-text-secondary">{t.orders.createdAt}:</span> <span className="text-brand-text">{formatDate(selectedOrder.createdAt)}</span></p>
                 {selectedOrder.paidAt && (
-                  <p><span className="text-brand-text-secondary">支付时间:</span> <span className="text-brand-text">{formatDate(selectedOrder.paidAt)}</span></p>
+                  <p><span className="text-brand-text-secondary">{t.orders.paidAt}:</span> <span className="text-brand-text">{formatDate(selectedOrder.paidAt)}</span></p>
                 )}
-                <p><span className="text-brand-text-secondary">订单状态:</span> 
+                <p><span className="text-brand-text-secondary">{t.orders.orderStatus}:</span> 
                   <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ml-2 ${getStatusColor(selectedOrder.status)}`}>
                     {getStatusText(selectedOrder.status)}
                   </span>
@@ -126,18 +128,18 @@ const OrdersPage: React.FC = () => {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-brand-text mb-3">收货信息</h3>
+              <h3 className="text-lg font-semibold text-brand-text mb-3">{t.orders.shippingInfo}</h3>
               <div className="text-brand-text-secondary text-sm space-y-1">
-                <p><span className="text-brand-text">收件人:</span> {selectedOrder.shippingAddress.name}</p>
-                <p><span className="text-brand-text">电话:</span> {selectedOrder.shippingAddress.phone}</p>
-                <p><span className="text-brand-text">地址:</span> {selectedOrder.shippingAddress.province} {selectedOrder.shippingAddress.city} {selectedOrder.shippingAddress.district}</p>
+                <p><span className="text-brand-text">{t.orders.recipient}:</span> {selectedOrder.shippingAddress.name}</p>
+                <p><span className="text-brand-text">{t.orders.phone}:</span> {selectedOrder.shippingAddress.phone}</p>
+                <p><span className="text-brand-text">{t.orders.address}:</span> {selectedOrder.shippingAddress.province} {selectedOrder.shippingAddress.city} {selectedOrder.shippingAddress.district}</p>
                 <p className="pl-12">{selectedOrder.shippingAddress.address}</p>
               </div>
             </div>
           </div>
 
           <div className="border-t border-gray-600 pt-6">
-            <h3 className="text-lg font-semibold text-brand-text mb-4">商品清单</h3>
+            <h3 className="text-lg font-semibold text-brand-text mb-4">{t.orders.productList}</h3>
             <div className="space-y-4">
               {selectedOrder.items.map((item) => (
                 <div key={item.productId} className="flex items-center space-x-4">
@@ -164,21 +166,21 @@ const OrdersPage: React.FC = () => {
               <div className="flex justify-end">
                 <div className="w-64 space-y-2">
                   <div className="flex justify-between text-brand-text-secondary">
-                    <span>商品小计</span>
+                    <span>{t.orders.subtotalLabel}</span>
                     <span>¥{selectedOrder.subtotal.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-brand-text-secondary">
-                    <span>运费</span>
-                    <span>{selectedOrder.shipping === 0 ? '免运费' : `¥${selectedOrder.shipping}`}</span>
+                    <span>{t.orders.shippingLabel}</span>
+                    <span>{selectedOrder.shipping === 0 ? t.orders.freeShipping : `¥${selectedOrder.shipping}`}</span>
                   </div>
                   {selectedOrder.tax > 0 && (
                     <div className="flex justify-between text-brand-text-secondary">
-                      <span>税费</span>
+                      <span>{t.orders.taxLabel}</span>
                       <span>¥{selectedOrder.tax.toLocaleString()}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-xl font-bold text-brand-primary border-t border-gray-600 pt-2">
-                    <span>总计</span>
+                    <span>{t.orders.totalLabel}</span>
                     <span>¥{selectedOrder.total.toLocaleString()}</span>
                   </div>
                 </div>
@@ -188,7 +190,7 @@ const OrdersPage: React.FC = () => {
 
           {selectedOrder.notes && (
             <div className="border-t border-gray-600 pt-6">
-              <h3 className="text-lg font-semibold text-brand-text mb-2">订单备注</h3>
+              <h3 className="text-lg font-semibold text-brand-text mb-2">{t.orders.orderNotes}</h3>
               <p className="text-brand-text-secondary">{selectedOrder.notes}</p>
             </div>
           )}

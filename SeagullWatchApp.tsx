@@ -11,6 +11,7 @@ import { ThemeProvider } from './components/theme-switcher-new';
 import { AuthProvider } from './hooks/use-auth';
 import { LanguageProvider } from './hooks/use-language';
 import { DatabaseManager } from './database/database-manager';
+import { CustomizationService } from './services/customization-service';
 
 // 导入布局组件
 import Header from './components/navigation-header';
@@ -53,6 +54,12 @@ const App: React.FC = () => {
         console.log('🔄 初始化数据库...');
         await DatabaseManager.getInstance().initialize();
         console.log('✅ 数据库初始化成功');
+        
+        // 初始化定制数据
+        console.log('🔄 初始化定制数据...');
+        await CustomizationService.initializeCustomizationData();
+        console.log('✅ 定制数据初始化成功');
+        
         setIsDbInitialized(true);
       } catch (error) {
         console.error('❌ 数据库初始化失败:', error);

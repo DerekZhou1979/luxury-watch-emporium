@@ -7,8 +7,6 @@ import type {
   OrderCustomizationDetailRecord 
 } from '../database/schema';
 
-const db = DatabaseManager.getInstance();
-
 // 类型别名，方便使用
 export type CustomizationCategory = CustomizationCategoryRecord;
 export type CustomizationOption = CustomizationOptionRecord;
@@ -22,6 +20,7 @@ export class CustomizationService {
   static async initializeCustomizationData(): Promise<void> {
     try {
       console.log('🔄 初始化定制数据...');
+      const db = DatabaseManager.getInstance();
 
       // 检查是否已初始化
       const existingCategories = await db.getEngine().find('customization_categories', {});
@@ -73,6 +72,8 @@ export class CustomizationService {
     configs: ProductCustomizationConfig[];
   }> {
     try {
+      const db = DatabaseManager.getInstance();
+      
       // 获取产品的定制配置
       const configs = await db.getEngine().find('product_customization_configs', {
         where: [{ field: 'product_id', operator: '=', value: productId }],
@@ -80,9 +81,9 @@ export class CustomizationService {
       });
 
       // 获取相关的定制类别
-      const categoryIds = configs.map(config => config.category_id);
+      const categoryIds = configs.map((config: any) => config.category_id);
       const categories = await db.getEngine().find('customization_categories', {
-        where: categoryIds.map(id => ({ field: 'id', operator: '=', value: id })),
+        where: categoryIds.map((id: string) => ({ field: 'id', operator: '=', value: id })),
         orderBy: [{ field: 'sort_order', direction: 'asc' }]
       });
 
@@ -166,7 +167,7 @@ export class CustomizationService {
     };
   }
 
-  /**
+    /**
    * 保存订单定制详情
    */
   static async saveOrderCustomizationDetails(
@@ -177,29 +178,30 @@ export class CustomizationService {
   ): Promise<void> {
     try {
       console.log('💾 保存订单定制详情:', { orderItemId, selectedOptions });
+      const db = DatabaseManager.getInstance();
 
       for (const [categoryId, optionId] of Object.entries(selectedOptions)) {
         const category = categories.find(cat => cat.id === categoryId);
         const categoryOptions = options[categoryId] || [];
         const option = categoryOptions.find(opt => opt.id === optionId);
 
-                 if (category && option) {
-           const detail: OrderCustomizationDetail = {
-             id: `${orderItemId}_${categoryId}_${Date.now()}`,
-             order_item_id: orderItemId,
-             category_id: categoryId,
-             category_name: category.name,
-             category_name_en: category.name_en,
-             option_id: optionId,
-             option_name: option.name,
-             option_name_en: option.name_en,
-             option_price: option.base_price,
-             price_modifier: 0,
-             created_at: new Date().toISOString()
-           };
+        if (category && option) {
+          const detail: OrderCustomizationDetail = {
+            id: `${orderItemId}_${categoryId}_${Date.now()}`,
+            order_item_id: orderItemId,
+            category_id: categoryId,
+            category_name: category.name,
+            category_name_en: category.name_en,
+            option_id: optionId,
+            option_name: option.name,
+            option_name_en: option.name_en,
+            option_price: option.base_price,
+            price_modifier: 0,
+            created_at: new Date().toISOString()
+          };
 
-           await db.getEngine().insert('order_customization_details', detail);
-         }
+          await db.getEngine().insert('order_customization_details', detail);
+        }
       }
 
       console.log('✅ 订单定制详情保存成功');
@@ -214,6 +216,7 @@ export class CustomizationService {
    */
   static async getOrderCustomizationDetails(orderItemId: string): Promise<OrderCustomizationDetail[]> {
     try {
+      const db = DatabaseManager.getInstance();
       const details = await db.getEngine().find('order_customization_details', {
         where: [{ field: 'order_item_id', operator: '=', value: orderItemId }]
       });
@@ -231,7 +234,8 @@ export class CustomizationService {
   static async getCustomizationOptionDetails(optionIds: string[]): Promise<CustomizationOption[]> {
     try {
       if (optionIds.length === 0) return [];
-
+      
+      const db = DatabaseManager.getInstance();
       const options = await db.getEngine().find('customization_options', {
         where: optionIds.map(id => ({ field: 'id', operator: '=', value: id }))
       });

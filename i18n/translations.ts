@@ -105,6 +105,39 @@ export interface Translations {
     checkout: string;
     continueShopping: string;
   };
+
+  // 订单相关
+  orders: {
+    orderDetails: string;
+    backToOrderList: string;
+    orderInfo: string;
+    shippingInfo: string;
+    productList: string;
+    orderNumber: string;
+    createdAt: string;
+    paidAt: string;
+    orderStatus: string;
+    recipient: string;
+    phone: string;
+    address: string;
+    orderNotes: string;
+    // 订单状态
+    pending: string;
+    paid: string;
+    processing: string;
+    shipped: string;
+    delivered: string;
+    cancelled: string;
+    // 其他
+    subtotalLabel: string;
+    shippingLabel: string;
+    taxLabel: string;
+    totalLabel: string;
+    freeShipping: string;
+    loadingOrders: string;
+    noOrders: string;
+    orderNotFound: string;
+  };
   
   // 用户账户
   account: {
@@ -400,6 +433,38 @@ export const zhTranslations: Translations = {
     checkout: '确认定制',
     continueShopping: '继续定制选购',
   },
+
+  orders: {
+    orderDetails: '订单详情',
+    backToOrderList: '← 返回订单列表',
+    orderInfo: '订单信息',
+    shippingInfo: '收货信息',
+    productList: '商品清单',
+    orderNumber: '订单号',
+    createdAt: '创建时间',
+    paidAt: '支付时间',
+    orderStatus: '订单状态',
+    recipient: '收件人',
+    phone: '电话',
+    address: '地址',
+    orderNotes: '订单备注',
+    // 订单状态
+    pending: '待支付',
+    paid: '已支付',
+    processing: '处理中',
+    shipped: '已发货',
+    delivered: '已送达',
+    cancelled: '已取消',
+    // 其他
+    subtotalLabel: '商品小计',
+    shippingLabel: '运费',
+    taxLabel: '税费',
+    totalLabel: '总计',
+    freeShipping: '免运费',
+    loadingOrders: '加载订单中...',
+    noOrders: '暂无订单',
+    orderNotFound: '订单未找到',
+  },
   
   account: {
     myAccount: '我的账户',
@@ -690,6 +755,38 @@ export const enTranslations: Translations = {
     total: 'Total',
     checkout: 'Confirm Bespoke Order',
     continueShopping: 'Continue Bespoke Shopping',
+  },
+
+  orders: {
+    orderDetails: 'Order Details',
+    backToOrderList: '← Back to Order List',
+    orderInfo: 'Order Information',
+    shippingInfo: 'Shipping Information',
+    productList: 'Product List',
+    orderNumber: 'Order Number',
+    createdAt: 'Created Time',
+    paidAt: 'Paid Time',
+    orderStatus: 'Order Status',
+    recipient: 'Recipient',
+    phone: 'Phone',
+    address: 'Address',
+    orderNotes: 'Order Notes',
+    // 订单状态
+    pending: 'Pending Payment',
+    paid: 'Paid',
+    processing: 'Processing',
+    shipped: 'Shipped',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled',
+    // 其他
+    subtotalLabel: 'Subtotal',
+    shippingLabel: 'Shipping',
+    taxLabel: 'Tax',
+    totalLabel: 'Total',
+    freeShipping: 'Free Shipping',
+    loadingOrders: 'Loading orders...',
+    noOrders: 'No orders',
+    orderNotFound: 'Order not found',
   },
   
   account: {

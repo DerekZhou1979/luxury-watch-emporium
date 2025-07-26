@@ -57,7 +57,11 @@ export class BrowserDatabaseEngine {
       reviews: [],
       coupons: [],
       settings: [],
-      logs: []
+      logs: [],
+      customization_categories: [],
+      customization_options: [],
+      product_customization_configs: [],
+      order_customization_details: []
     };
   }
 
@@ -66,7 +70,17 @@ export class BrowserDatabaseEngine {
       // 尝试加载现有数据
       const data = this.loadFromStorage();
       if (data) {
-        this.schema = data;
+        // 合并现有数据和新的表结构
+        this.schema = { ...this.schema, ...data };
+        
+        // 确保所有新表都存在
+        if (!this.schema.customization_categories) this.schema.customization_categories = [];
+        if (!this.schema.customization_options) this.schema.customization_options = [];
+        if (!this.schema.product_customization_configs) this.schema.product_customization_configs = [];
+        if (!this.schema.order_customization_details) this.schema.order_customization_details = [];
+        
+        // 保存更新后的schema
+        await this.saveToStorage();
       } else {
         // 创建新的数据库
         await this.saveToStorage();
