@@ -1,29 +1,26 @@
-import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
-export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
-    return {
-      base: mode === 'production' ? '/luxury-watch-emporium/' : '/',
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      },
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, '.'),
-        }
-      },
-      // 构建配置
-      build: {
-        outDir: 'dist',
-        assetsDir: 'assets',
-        // 确保资源文件路径正确
-        rollupOptions: {
-          output: {
-            assetFileNames: 'assets/[name]-[hash][extname]'
-          }
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  base: '/luxury-watch-emporium/',
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'antd-vendor': ['antd', '@ant-design/icons'],
+          'router-vendor': ['react-router-dom']
         }
       }
-    };
-});
+    }
+  },
+  server: {
+    host: true,
+    port: 5173
+  }
+})
