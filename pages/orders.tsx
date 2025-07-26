@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { SettingOutlined, TagOutlined } from '@ant-design/icons';
 import { useAuth } from '../hooks/use-auth';
 import { useLanguage } from '../hooks/use-language';
 import { PaymentServiceSimple } from '../services/payment-service-simple';
-import { Order, OrderStatus } from '../seagull-watch-types';
+import { CustomizationService } from '../services/customization-service';
+import { Order, OrderStatus, OrderItem, OrderCustomizationDetail } from '../seagull-watch-types';
 
 const OrdersPage: React.FC = () => {
   const { orderId } = useParams<{ orderId?: string }>();
@@ -12,6 +14,7 @@ const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [customizationDetails, setCustomizationDetails] = useState<Record<string, OrderCustomizationDetail[]>>({});
 
   useEffect(() => {
     loadOrders();
@@ -21,8 +24,30 @@ const OrdersPage: React.FC = () => {
     if (orderId && orders.length > 0) {
       const order = orders.find(o => o.id === orderId);
       setSelectedOrder(order || null);
+      if (order) {
+        fetchCustomizationDetails(order);
+      }
     }
   }, [orderId, orders]);
+
+  const fetchCustomizationDetails = async (order: Order) => {
+    const details: Record<string, OrderCustomizationDetail[]> = {};
+    
+    for (const item of order.items) {
+      if (item.isCustomized) {
+        try {
+          const itemDetails = await CustomizationService.getOrderCustomizationDetails(item.id);
+          if (itemDetails && itemDetails.length > 0) {
+            details[item.productId] = itemDetails;
+          }
+        } catch (error) {
+          console.error(`获取商品 ${item.productId} 的定制详情失败:`, error);
+        }
+      }
+    }
+    
+    setCustomizationDetails(details);
+  };
 
   const loadOrders = async () => {
     try {
@@ -140,24 +165,43 @@ const OrdersPage: React.FC = () => {
 
           <div className="border-t border-gray-600 pt-6">
             <h3 className="text-lg font-semibold text-brand-text mb-4">{t.orders.productList}</h3>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {selectedOrder.items.map((item) => (
-                <div key={item.productId} className="flex items-center space-x-4">
-                  <img 
-                    src={item.imageUrl} 
-                    alt={item.name} 
-                    className="w-20 h-20 object-cover rounded-md"
-                  />
-                  <div className="flex-grow">
-                    <p className="text-brand-text font-medium">{item.name}</p>
-                    <p className="text-brand-text-secondary text-sm">SKU: {item.sku}</p>
-                    <p className="text-brand-text-secondary text-sm">
-                      ¥{item.price.toLocaleString()} × {item.quantity}
-                    </p>
+                <div key={item.productId} className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-start space-x-4">
+                    <img 
+                      src={item.imageUrl} 
+                      alt={item.name} 
+                      className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                    />
+                    <div className="flex-grow min-w-0">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-1">
+                          <h4 className="font-semibold text-brand-text">{item.name}</h4>
+                          <p className="text-brand-text-secondary text-sm">SKU: {item.sku}</p>
+                          {item.isCustomized && (
+                            <div className="flex items-center space-x-1">
+                              <TagOutlined className="text-blue-600 text-xs" />
+                              <span className="text-xs text-blue-600 font-medium">
+                                {t.userCenter.title === '个人中心' ? '定制产品' : 'Customized Product'}
+                              </span>
+                            </div>
+                          )}
+                          <p className="text-brand-text-secondary text-sm">
+                            ¥{item.price.toLocaleString()} × {item.quantity}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-brand-primary">
+                            ¥{(item.price * item.quantity).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* 定制详情 */}
+                      {renderCustomizationDetails(item)}
+                    </div>
                   </div>
-                  <p className="text-brand-primary font-semibold">
-                    ¥{(item.price * item.quantity).toLocaleString()}
-                  </p>
                 </div>
               ))}
             </div>
