@@ -3,17 +3,28 @@ import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useCart } from '../hooks/use-shopping-cart';
 import { useAuth } from '../hooks/use-auth';
-import { BRAND_INFO, NAVIGATION_LINKS } from '../seagull-brand-config';
+import { useLanguage } from '../hooks/use-language';
+import { BRAND_INFO } from '../seagull-brand-config';
 import { ShoppingCartIcon, MenuIcon, XIcon } from './ui-icons';
+import LanguageSwitcher from './language-switcher';
 
 const Header: React.FC = () => {
   const { cart } = useCart();
   const { user, isAuthenticated } = useAuth();
+  const { t } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const totalItemsInCart = cart.reduce((sum, item) => sum + item.quantity, 0);
 
+  // 导航链接配置（支持多语言）
+  const navigationLinks = [
+    { name: t.nav.home, path: '/' },
+    { name: t.nav.products, path: '/products' },
+    { name: t.nav.about, path: '/about' },
+    { name: t.nav.profile, path: '/user-center' },
+  ];
+
   return (
-    <header className="bg-brand-surface shadow-lg sticky top-0 z-50">
+    <header className="bg-white shadow-lg sticky top-0 z-50" style={{ backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255, 255, 255, 0.95)' }}>
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link to="/" className="flex items-center space-x-2">
           {BRAND_INFO.logoSvg}
@@ -22,9 +33,9 @@ const Header: React.FC = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex space-x-6 items-center">
-          {NAVIGATION_LINKS.map((link) => (
+          {navigationLinks.map((link) => (
             <NavLink
-              key={link.name}
+              key={link.path}
               to={link.path}
               className={({ isActive }) =>
                 `text-brand-text-secondary hover:text-brand-primary transition-colors duration-200 ${isActive ? 'text-brand-primary font-semibold' : ''}`
@@ -44,7 +55,7 @@ const Header: React.FC = () => {
                 className="text-brand-text-secondary hover:text-brand-primary transition-colors duration-200 flex items-center space-x-1"
               >
                 <span>👤</span>
-                <span>欢迎，{user.name.length > 6 ? user.name.substring(0, 6) + '...' : user.name}</span>
+                <span>{t.nav.profile}，{user.name.length > 6 ? user.name.substring(0, 6) + '...' : user.name}</span>
               </Link>
             </div>
           ) : (
@@ -53,16 +64,19 @@ const Header: React.FC = () => {
                 to="/login" 
                 className="text-brand-text-secondary hover:text-brand-primary transition-colors duration-200"
               >
-                登录
+                {t.nav.login}
               </Link>
               <Link 
                 to="/register" 
                 className="bg-brand-primary text-brand-bg px-3 py-1 rounded-md text-sm hover:bg-brand-primary-dark transition-colors"
               >
-                注册
+                {t.nav.register}
               </Link>
             </div>
           )}
+          
+          {/* 语言切换器 */}
+          <LanguageSwitcher />
           
           <Link to="/cart" className="relative text-brand-text-secondary hover:text-brand-primary transition-colors duration-200">
             <ShoppingCartIcon className="w-6 h-6" />
@@ -85,53 +99,45 @@ const Header: React.FC = () => {
 
       {/* Mobile Navigation Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-brand-surface border-t border-gray-700">
-          <nav className="flex flex-col space-y-1 px-4 py-3">
-            {NAVIGATION_LINKS.map((link) => (
+        <div className="md:hidden bg-brand-surface border-t border-gray-200">
+          <div className="px-4 py-2 space-y-1">
+            {navigationLinks.map((link) => (
               <NavLink
-                key={link.name}
+                key={link.path}
                 to={link.path}
-                onClick={() => setIsMobileMenuOpen(false)}
                 className={({ isActive }) =>
-                  `block px-3 py-2 rounded-md text-base font-medium ${isActive ? 'bg-brand-primary text-brand-bg' : 'text-brand-text-secondary hover:bg-gray-700 hover:text-brand-primary'}`
+                  `block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+                    isActive 
+                      ? 'text-brand-primary bg-brand-primary/10' 
+                      : 'text-brand-text-secondary hover:text-brand-primary hover:bg-gray-50'
+                  }`
                 }
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 {link.name}
               </NavLink>
             ))}
             
-            {/* 移动端用户菜单 */}
-            <div className="border-t border-gray-700 pt-3 mt-3">
-              {isAuthenticated && user ? (
-                <>
-                  <Link
-                    to="/user-center"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-brand-text-secondary hover:bg-gray-700 hover:text-brand-primary"
-                  >
-                    👤 个人中心
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link
-                    to="/login"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-brand-text-secondary hover:bg-gray-700 hover:text-brand-primary"
-                  >
-                    登录
-                  </Link>
-                  <Link
-                    to="/register"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-brand-text-secondary hover:bg-gray-700 hover:text-brand-primary"
-                  >
-                    注册
-                  </Link>
-                </>
-              )}
-            </div>
-          </nav>
+            {/* Mobile Auth Links */}
+            {!isAuthenticated && (
+              <div className="pt-2 border-t border-gray-200">
+                <Link 
+                  to="/login" 
+                  className="block px-3 py-2 rounded-md text-base font-medium text-brand-text-secondary hover:text-brand-primary hover:bg-gray-50 transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t.nav.login}
+                </Link>
+                <Link 
+                  to="/register" 
+                  className="block px-3 py-2 rounded-md text-base font-medium text-brand-text-secondary hover:text-brand-primary hover:bg-gray-50 transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t.nav.register}
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </header>

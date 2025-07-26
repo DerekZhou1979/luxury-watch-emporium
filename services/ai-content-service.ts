@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import { Product } from '../types';
+import { Product } from '../seagull-watch-types';
 import { GEMINI_MODEL_TEXT, GEMINI_API_KEY, API_KEY_ERROR_MESSAGE } from '../seagull-brand-config.tsx';
 
 let ai: GoogleGenAI | null = null;
@@ -39,7 +39,7 @@ export const geminiService = {
       
       // Correctly access the text property
       const text = response.text;
-      return text.trim();
+      return text?.trim() || "";
 
     } catch (error) {
       console.error("Error generating creative description with Gemini:", error);

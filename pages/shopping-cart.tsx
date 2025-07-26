@@ -1,146 +1,326 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
+import { 
+  Card, 
+  List, 
+  Button, 
+  InputNumber, 
+  Typography, 
+  Space, 
+  Divider, 
+  Empty,
+  Row,
+  Col,
+  Image,
+  Tag
+} from 'antd';
+import { 
+  DeleteOutlined, 
+  ShoppingOutlined, 
+  CreditCardOutlined,
+  MinusOutlined,
+  PlusOutlined 
+} from '@ant-design/icons';
 import { useCart } from '../hooks/use-shopping-cart';
+import { useLanguage } from '../hooks/use-language';
 import { CartItem } from '../seagull-watch-types';
-import { PlusIcon, MinusIcon, TrashIcon } from '../components/ui-icons';
 
-const CartPage: React.FC = () => {
-  const { cart, removeItem, updateQuantity, clearCart, totalItems, totalPrice } = useCart();
-  const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
+const { Title, Text } = Typography;
+
+const ShoppingCartPage: React.FC = () => {
+  const { cart, removeItem, updateQuantity, totalPrice } = useCart();
+  const { t, formatString } = useLanguage();
 
   const handleQuantityChange = (item: CartItem, newQuantity: number) => {
     if (newQuantity > 0) {
       updateQuantity(item.id, newQuantity);
-    } else {
-      removeItem(item.id);
     }
   };
 
-  const handleCheckout = () => {
-    // 在真实应用中，这里会导航到结账流程或调用API
-    setCheckoutMessage(`感谢您的模拟购买！您购买了 ${totalItems} 件商品，总价 ¥${totalPrice.toLocaleString()}。购物车已清空。`);
-    clearCart();
-    // 几秒后隐藏消息
-    setTimeout(() => setCheckoutMessage(null), 7000);
+  const handleRemoveItem = (item: CartItem) => {
+    removeItem(item.id);
   };
 
-  if (checkoutMessage) {
-    return (
-      <div className="text-center py-16 bg-brand-surface rounded-lg shadow-xl">
-        <h1 className="text-3xl font-serif font-bold text-brand-primary mb-4">结账成功！</h1>
-        <p className="text-brand-text-secondary text-lg">{checkoutMessage}</p>
-        <Link 
-          to="/products" 
-          className="mt-8 inline-block bg-brand-primary text-brand-bg font-semibold py-3 px-6 rounded-md hover:bg-brand-primary-dark transition-colors"
-        >
-          继续购物
-        </Link>
-      </div>
-    );
-  }
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   if (cart.length === 0) {
     return (
-      <div className="text-center py-16">
-        <h1 className="text-3xl font-serif font-bold text-brand-text mb-4">您的购物车为空</h1>
-        <p className="text-brand-text-secondary text-lg mb-8">看起来您还没有添加任何精美腕表。</p>
-        <Link 
-          to="/products" 
-          className="bg-brand-primary text-brand-bg font-semibold py-3 px-6 rounded-md hover:bg-brand-primary-dark transition-colors"
+      <div className="min-h-screen flex items-center justify-center">
+        <Card 
+          style={{ 
+            textAlign: 'center', 
+            padding: '40px',
+            maxWidth: '500px',
+            width: '100%',
+            margin: '0 20px'
+          }}
         >
-          探索腕表系列
-        </Link>
+          <Empty
+            image={
+              <div style={{ fontSize: '80px', color: '#cbd5e1', marginBottom: '20px' }}>
+                🛒
+              </div>
+            }
+            description={
+              <div>
+                <Title level={3} style={{ color: '#64748b', marginBottom: '8px' }}>
+                  {t.cart.emptyCart}
+                </Title>
+                <Text style={{ color: '#94a3b8', fontSize: '16px' }}>
+                  {t.products.tryOtherCategories}
+                </Text>
+              </div>
+            }
+          >
+            <Link to="/products">
+              <Button 
+                type="primary" 
+                size="large"
+                icon={<ShoppingOutlined />}
+                style={{
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '12px 24px',
+                  fontWeight: 500,
+                  fontSize: '16px'
+                }}
+              >
+                {t.cart.continueShopping}
+              </Button>
+            </Link>
+          </Empty>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-4xl font-serif font-bold text-brand-text text-center">购物车</h1>
-      
-      <div className="bg-brand-surface shadow-xl rounded-lg overflow-hidden">
-        {/* 购物车商品 */}
-        <div className="divide-y divide-gray-700">
-          {cart.map((item) => (
-            <div key={item.id} className="flex flex-col sm:flex-row items-center p-4 sm:p-6 gap-4">
-              <img 
-                src={item.imageUrl || `https://picsum.photos/seed/${item.id}/100/100`} 
-                alt={item.name} 
-                className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-md shadow-md"
-              />
-              <div className="flex-grow text-center sm:text-left">
-                <Link to={`/products/${item.id}`} className="text-lg font-semibold text-brand-text hover:text-brand-primary transition-colors">
-                  {item.name}
-                </Link>
-                <p className="text-sm text-brand-text-secondary">{item.category}</p>
-                <p className="text-md text-brand-primary font-medium mt-1 sm:hidden">¥{(item.price * item.quantity).toLocaleString()}</p>
-              </div>
-              
-              {/* 数量控制 */}
-              <div className="flex items-center space-x-3 my-2 sm:my-0">
-                <button 
-                  onClick={() => handleQuantityChange(item, item.quantity - 1)}
-                  className="p-2 rounded-full bg-gray-600 hover:bg-gray-500 text-brand-text transition-colors"
-                  aria-label="减少数量"
-                >
-                  <MinusIcon className="w-4 h-4" />
-                </button>
-                <span className="w-10 text-center font-medium text-brand-text">{item.quantity}</span>
-                <button 
-                  onClick={() => handleQuantityChange(item, item.quantity + 1)}
-                  className="p-2 rounded-full bg-gray-600 hover:bg-gray-500 text-brand-text transition-colors"
-                  aria-label="增加数量"
-                >
-                  <PlusIcon className="w-4 h-4" />
-                </button>
-              </div>
+    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+      <Title level={2} style={{ marginBottom: '30px', textAlign: 'center' }}>
+        🛒 {t.nav.cart}
+      </Title>
 
-              <p className="hidden sm:block text-lg font-semibold text-brand-primary w-28 text-right">¥{(item.price * item.quantity).toLocaleString()}</p>
-              
-              <button 
-                onClick={() => removeItem(item.id)}
-                className="p-2 rounded-full text-red-400 hover:text-red-300 hover:bg-red-800/50 transition-colors"
-                aria-label="移除商品"
-              >
-                <TrashIcon className="w-5 h-5" />
-              </button>
-            </div>
-          ))}
-        </div>
-
-        {/* 购物车汇总和结账 */}
-        <div className="bg-gray-800 p-6">
-          <div className="flex justify-between items-center mb-4">
-            <p className="text-xl text-brand-text-secondary">小计 ({totalItems} 件商品):</p>
-            <p className="text-2xl font-bold text-brand-primary">¥{totalPrice.toLocaleString()}</p>
-          </div>
-          <p className="text-sm text-brand-text-secondary text-right mb-6">运费和税费将在模拟结账时计算。</p>
-          <Link 
-            to="/checkout"
-            className="block w-full bg-brand-primary text-brand-bg font-bold py-3 px-6 rounded-md text-lg hover:bg-brand-primary-dark transition-colors duration-300 text-center"
+      <Row gutter={[24, 24]}>
+        {/* 购物车商品列表 */}
+        <Col xs={24} lg={16}>
+          <Card 
+            title={
+              <span style={{ fontSize: '18px', fontWeight: 600 }}>
+                {formatString(t.products.foundWatches, { count: totalItems })}
+              </span>
+            }
+            style={{ marginBottom: '20px' }}
           >
-            去结算
-          </Link>
-          <button 
-            onClick={() => {
-              if(window.confirm("确定要清空购物车吗？")) {
-                clearCart();
-              }
-            }}
-            className="w-full mt-3 text-center text-brand-text-secondary hover:text-red-400 transition-colors text-sm"
-          >
-            清空购物车
-          </button>
-        </div>
-      </div>
+            <List
+              dataSource={cart}
+              renderItem={(item) => (
+                <List.Item
+                  style={{ 
+                    padding: '16px 0',
+                    borderBottom: '1px solid #f0f0f0'
+                  }}
+                >
+                  <Row style={{ width: '100%' }} gutter={[16, 16]} align="middle">
+                    {/* 产品图片 */}
+                    <Col xs={24} sm={6} md={4}>
+                      <Link to={`/products/${item.id}`}>
+                        <Image
+                          src={item.imageUrl}
+                          alt={item.name}
+                          style={{ 
+                            width: '100%',
+                            maxWidth: '100px',
+                            borderRadius: '8px',
+                            cursor: 'pointer'
+                          }}
+                          preview={false}
+                        />
+                      </Link>
+                    </Col>
 
-      <div className="text-center">
-        <Link to="/products" className="text-brand-primary hover:underline">
-          &larr; 继续购物
-        </Link>
-      </div>
+                    {/* 产品信息 */}
+                    <Col xs={24} sm={18} md={12}>
+                      <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                        <Link to={`/products/${item.id}`}>
+                          <Title 
+                            level={5} 
+                            style={{ 
+                              margin: 0,
+                              color: '#1e293b',
+                              fontSize: '16px',
+                              cursor: 'pointer'
+                            }}
+                            className="hover:text-blue-600"
+                          >
+                            {item.name}
+                          </Title>
+                        </Link>
+                        
+                        <Text type="secondary" style={{ fontSize: '13px' }}>
+                          {t.products.sku}: {item.sku}
+                        </Text>
+                        
+                        <Tag color="blue" style={{ width: 'fit-content' }}>
+                          {item.category}
+                        </Tag>
+                      </Space>
+                    </Col>
+
+                    {/* 数量控制 */}
+                    <Col xs={12} sm={12} md={4}>
+                      <Space direction="vertical" align="center" size="small">
+                        <Text strong style={{ fontSize: '13px', color: '#64748b' }}>
+                          {t.cart.quantity}
+                        </Text>
+                        <Space.Compact>
+                          <Button
+                            size="small"
+                            icon={<MinusOutlined />}
+                            onClick={() => handleQuantityChange(item, item.quantity - 1)}
+                            disabled={item.quantity <= 1}
+                          />
+                          <InputNumber
+                            size="small"
+                            min={1}
+                            max={item.stock}
+                            value={item.quantity}
+                            onChange={(value) => handleQuantityChange(item, value || 1)}
+                            style={{ width: '60px', textAlign: 'center' }}
+                          />
+                          <Button
+                            size="small"
+                            icon={<PlusOutlined />}
+                            onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                            disabled={item.quantity >= item.stock}
+                          />
+                        </Space.Compact>
+                      </Space>
+                    </Col>
+
+                    {/* 价格和操作 */}
+                    <Col xs={12} sm={12} md={4}>
+                      <Space direction="vertical" align="end" size="small" style={{ width: '100%' }}>
+                        <Text 
+                          strong 
+                          style={{ 
+                            fontSize: '16px',
+                            color: '#3b82f6'
+                          }}
+                        >
+                          ¥{(item.price * item.quantity).toLocaleString()}
+                        </Text>
+                        <Text 
+                          type="secondary" 
+                          style={{ fontSize: '12px' }}
+                        >
+                          ¥{item.price.toLocaleString()} x {item.quantity}
+                        </Text>
+                        <Button
+                          type="text"
+                          danger
+                          size="small"
+                          icon={<DeleteOutlined />}
+                          onClick={() => handleRemoveItem(item)}
+                          style={{ padding: '4px 8px' }}
+                        >
+                          {t.cart.removeFromCart}
+                        </Button>
+                      </Space>
+                    </Col>
+                  </Row>
+                </List.Item>
+              )}
+            />
+          </Card>
+        </Col>
+
+        {/* 订单摘要 */}
+        <Col xs={24} lg={8}>
+          <Card 
+            title={
+              <span style={{ fontSize: '18px', fontWeight: 600 }}>
+                {t.cart.total}
+              </span>
+            }
+            style={{ position: 'sticky', top: '100px' }}
+          >
+            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+              {/* 价格明细 */}
+              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Text>{t.cart.subtotal}:</Text>
+                  <Text strong>¥{totalPrice.toLocaleString()}</Text>
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Text type="secondary">配送费:</Text>
+                  <Text type="secondary">免费</Text>
+                </div>
+
+                <Divider style={{ margin: '12px 0' }} />
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Title level={4} style={{ margin: 0, color: '#1e293b' }}>
+                    {t.cart.total}:
+                  </Title>
+                  <Title 
+                    level={4} 
+                    style={{ 
+                      margin: 0,
+                      color: '#3b82f6',
+                      fontSize: '20px'
+                    }}
+                  >
+                    ¥{totalPrice.toLocaleString()}
+                  </Title>
+                </div>
+              </Space>
+
+              {/* 结账按钮 */}
+              <Link to="/checkout" style={{ width: '100%' }}>
+                <Button 
+                  type="primary" 
+                  size="large"
+                  icon={<CreditCardOutlined />}
+                  style={{
+                    width: '100%',
+                    height: '48px',
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    fontWeight: 600
+                  }}
+                >
+                  {t.cart.checkout}
+                </Button>
+              </Link>
+
+              {/* 继续购物 */}
+              <Link to="/products" style={{ width: '100%' }}>
+                <Button 
+                  type="default"
+                  size="large"
+                  icon={<ShoppingOutlined />}
+                  style={{
+                    width: '100%',
+                    height: '44px',
+                    borderColor: '#e2e8f0',
+                    color: '#64748b',
+                    fontWeight: 500,
+                    borderRadius: '8px'
+                  }}
+                >
+                  {t.cart.continueShopping}
+                </Button>
+              </Link>
+            </Space>
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 };
 
-export default CartPage;
+export default ShoppingCartPage;

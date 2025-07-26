@@ -1,17 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Typography, Row, Col, Space, Button, notification, Card, Image } from 'antd';
+import { ShoppingCartOutlined, TrophyOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import HeroSection from '../components/hero-banner';
 import ProductCard from '../components/watch-product-card';
 import LoadingSpinner from '../components/loading-indicator';
 import { Product, ProductCategory } from '../seagull-watch-types';
 import { databaseProductService } from '../services/database-product-service';
 import { useCart } from '../hooks/use-shopping-cart';
+import { useLanguage } from '../hooks/use-language';
 import { BRAND_INFO } from '../seagull-brand-config';
+
+const { Title, Paragraph } = Typography;
 
 const HomePage: React.FC = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { addItem } = useCart();
+  const { t, formatString } = useLanguage();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -36,72 +42,270 @@ const HomePage: React.FC = () => {
 
   const handleAddToCart = (product: Product) => {
     addItem(product);
-    // Optionally, show a notification
+    notification.success({
+      message: t.cart.addToCart,
+      description: `${product.name} ${t.cart.addToCart}！`,
+    });
   };
 
   return (
-    <div className="space-y-16">
+    <div style={{ padding: '0', display: 'flex', flexDirection: 'column', gap: '64px' }}>
       <HeroSection />
 
-      <section>
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-serif font-semibold text-brand-text">精选时计</h2>
-          <Link to="/products" className="text-brand-primary hover:text-brand-primary-dark font-medium transition-colors">
-            查看所有系列 &rarr;
+      {/* 精选时计区域 */}
+      <section style={{ padding: '0 24px' }}>
+        <div 
+          style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            marginBottom: '40px',
+            padding: '0 8px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <TrophyOutlined 
+              style={{ 
+                fontSize: '28px', 
+                color: '#f59e0b',
+                filter: 'drop-shadow(0 1px 2px rgba(245, 158, 11, 0.2))'
+              }} 
+            />
+            <Title 
+              level={2} 
+              style={{ 
+                margin: 0,
+                background: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}
+            >
+              {t.home.featuredWatches}
+            </Title>
+          </div>
+          <Link to="/products">
+            <Button 
+              type="link" 
+              size="large"
+              icon={<ArrowRightOutlined />}
+              style={{
+                color: '#3b82f6',
+                fontSize: '16px',
+                fontWeight: 500,
+                padding: '8px 16px',
+                borderRadius: '8px',
+                transition: 'all 0.3s ease'
+              }}
+              className="hover:bg-blue-50"
+            >
+              {t.home.viewAllSeries}
+            </Button>
           </Link>
         </div>
+        
         {isLoading ? (
-          <LoadingSpinner message="正在加载精选腕表..." />
-        ) : featuredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProducts.map((product, index) => (
-              <ProductCard key={`featured-${product.id}-${index}`} product={product} onAddToCart={handleAddToCart} />
-            ))}
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '64px 0' }}>
+            <LoadingSpinner message={t.common.loading} />
           </div>
+        ) : featuredProducts.length > 0 ? (
+          <Row gutter={[24, 24]}>
+            {featuredProducts.map((product, index) => (
+              <Col xs={24} md={12} lg={8} key={`featured-${product.id}-${index}`}>
+                <ProductCard 
+                  product={product} 
+                  onAddToCart={handleAddToCart}
+                  showCustomizable={true}
+                />
+              </Col>
+            ))}
+          </Row>
         ) : (
-          <p className="text-brand-text-secondary text-center">暂无精选产品。</p>
+          <div style={{ textAlign: 'center', padding: '64px 0' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px', color: '#cbd5e1' }}>🕰️</div>
+            <Paragraph 
+              style={{ 
+                fontSize: '18px', 
+                color: '#64748b',
+                margin: 0
+              }}
+            >
+              {t.products.noProducts}
+            </Paragraph>
+          </div>
         )}
       </section>
 
-      <section className="bg-brand-surface p-10 rounded-lg shadow-xl">
-        <div className="grid md:grid-cols-2 gap-10 items-center">
-            <div>
-                <h2 className="text-3xl font-serif font-semibold text-brand-text mb-4">{BRAND_INFO.chineseName}的承诺</h2>
-                <p className="text-brand-text-secondary mb-4 leading-relaxed">
-                    在{BRAND_INFO.chineseName}，我们专注于钟表艺术。每一枚时计都由制表大师精心组装，将数百年的传统工艺与尖端技术完美融合。我们只选用最优质的材料，确保每一块手表不仅仅是计时工具，更是值得珍藏的传世之作。
-                </p>
-                <p className="text-brand-text-secondary mb-6 leading-relaxed">
-                    我们对卓越的承诺不止于制表工坊。我们致力于提供无与伦比的客户体验，引导您找到最能表达个人品味的时计杰作。70年来，海鸥表始终是中国制表行业的开创者和领先者。
-                </p>
-                <Link 
-                    to="/about" 
-                    className="inline-block bg-brand-primary text-brand-bg font-semibold py-3 px-6 rounded-md hover:bg-brand-primary-dark transition-colors duration-300"
+      {/* 品牌承诺区域 */}
+      <section style={{ padding: '0 24px' }}>
+        <Card 
+          style={{ 
+            padding: '48px 32px',
+            borderRadius: '16px',
+            border: '1px solid #e2e8f0',
+            background: '#ffffff',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+          }}
+        >
+          <Row gutter={[48, 32]} align="middle">
+            <Col xs={24} md={12}>
+              <div>
+                <Title 
+                  level={2} 
+                  style={{ 
+                    marginBottom: '20px',
+                    color: '#1e293b',
+                    fontSize: '32px',
+                    fontWeight: 'bold'
+                  }}
                 >
-                    了解我们的故事
+                  {t.home.brandPromise}
+                </Title>
+                <Paragraph 
+                  style={{ 
+                    color: '#64748b', 
+                    marginBottom: '16px', 
+                    fontSize: '16px', 
+                    lineHeight: '1.7',
+                    textAlign: 'justify'
+                  }}
+                >
+                  {t.home.brandPromiseDesc1}
+                </Paragraph>
+                <Paragraph 
+                  style={{ 
+                    color: '#64748b', 
+                    marginBottom: '24px', 
+                    fontSize: '16px', 
+                    lineHeight: '1.7',
+                    textAlign: 'justify'
+                  }}
+                >
+                  {t.home.brandPromiseDesc2}
+                </Paragraph>
+                <Link to="/about">
+                  <Button 
+                    type="primary" 
+                    size="large"
+                    style={{
+                      background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '12px 24px',
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      boxShadow: '0 2px 8px rgba(59, 130, 246, 0.2)',
+                      transition: 'all 0.3s ease'
+                    }}
+                    className="hover:shadow-lg hover:scale-105"
+                  >
+                    {t.home.learnOurStory}
+                  </Button>
                 </Link>
-            </div>
-            <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden">
-                <img src="./images/seagull_team_main.jpg" alt="海鸥表制表工艺" className="object-cover w-full h-full" />
-            </div>
-        </div>
+              </div>
+            </Col>
+            <Col xs={24} md={12}>
+              <div 
+                style={{
+                  position: 'relative',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                }}
+              >
+                <Image
+                  src="./images/seagull_team_main.jpg" 
+                  alt="海鸥表制表工艺" 
+                  style={{ 
+                    width: '100%', 
+                    height: '320px', 
+                    objectFit: 'cover',
+                    borderRadius: '12px'
+                  }}
+                  preview={false}
+                />
+                {/* 图片上的渐变遮罩 */}
+                <div 
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.1) 100%)',
+                    borderRadius: '12px'
+                  }}
+                />
+              </div>
+            </Col>
+          </Row>
+        </Card>
       </section>
       
-      <section>
-        <h2 className="text-3xl font-serif font-semibold text-brand-text text-center mb-8">按系列探索</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* 按系列探索 */}
+      <section style={{ padding: '0 24px' }}>
+        <Title 
+          level={2} 
+          style={{ 
+            textAlign: 'center', 
+            marginBottom: '40px',
+            background: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            fontSize: '32px',
+            fontWeight: 'bold'
+          }}
+        >
+          🎯 {t.home.exploreByCategory}
+        </Title>
+        <Row gutter={[24, 24]}>
           {Object.values(ProductCategory).map(category => (
-            <Link 
-              key={category} 
-              to={`/products?category=${encodeURIComponent(category)}`} 
-              className="block p-8 bg-brand-surface rounded-lg shadow-lg hover:shadow-xl hover:bg-gray-700 transition-all duration-300 text-center group"
-            >
-              <h3 className="text-xl font-semibold text-brand-text group-hover:text-brand-primary transition-colors">{category}</h3>
-              <p className="text-sm text-brand-text-secondary mt-2">探索我们的{category}系列。</p>
-            </Link>
+            <Col xs={12} sm={12} lg={6} key={category}>
+              <Link to={`/products?category=${encodeURIComponent(category)}`}>
+                <Card 
+                  hoverable
+                  style={{ 
+                    textAlign: 'center', 
+                    height: '140px',
+                    borderRadius: '12px',
+                    border: '1px solid #e2e8f0',
+                    background: '#ffffff',
+                    transition: 'all 0.3s ease'
+                  }}
+                  bodyStyle={{ 
+                    padding: '24px 16px',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center'
+                  }}
+                  className="hover:shadow-lg hover:scale-105"
+                >
+                  <Title 
+                    level={4} 
+                    style={{ 
+                      margin: '0 0 8px 0',
+                      color: '#1e293b',
+                      fontSize: '16px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    {category}
+                  </Title>
+                  <Paragraph 
+                    style={{ 
+                      margin: 0, 
+                      fontSize: '13px',
+                      color: '#64748b',
+                      lineHeight: '1.4'
+                    }}
+                  >
+                    {formatString(t.home.exploreCategory, { category })}
+                  </Paragraph>
+                </Card>
+              </Link>
+            </Col>
           ))}
-        </div>
+        </Row>
       </section>
-
     </div>
   );
 };

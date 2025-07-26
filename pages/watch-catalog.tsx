@@ -1,149 +1,229 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Typography, Input, Select, Row, Col, Empty, Space, Button } from 'antd';
+import { SearchOutlined, FilterOutlined } from '@ant-design/icons';
 import ProductCard from '../components/watch-product-card';
 import LoadingSpinner from '../components/loading-indicator';
 import { Product, ProductCategory } from '../seagull-watch-types';
 import { databaseProductService } from '../services/database-product-service';
 import { useCart } from '../hooks/use-shopping-cart';
+import { useLanguage } from '../hooks/use-language';
+
+const { Title } = Typography;
+const { Search } = Input;
+const { Option } = Select;
 
 const ProductsPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [categories, setCategories] = useState<ProductCategory[]>([]);
-  const [lastUpdated, setLastUpdated] = useState<number>(Date.now());
-  
-  const selectedCategory = searchParams.get('category') as ProductCategory | null;
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchParams] = useSearchParams();
   const { addItem } = useCart();
+  const { t, formatString } = useLanguage();
 
-  // 获取分类列表
+  // 从URL参数获取初始分类
   useEffect(() => {
-    const fetchCategories = async () => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    }
+  }, [searchParams]);
+
+  // 获取产品数据
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
       try {
-        const fetchedCategories = await databaseProductService.getProductCategories();
-        const uniqueCategories = Array.from(new Set(fetchedCategories));
-        setCategories(uniqueCategories);
+        const productData = await databaseProductService.getProducts();
+        setProducts(productData);
+        setFilteredProducts(productData);
       } catch (error) {
-        console.error("获取分类失败:", error);
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
-    fetchCategories();
+    fetchProducts();
   }, []);
 
-  // 获取产品列表的函数
-  const fetchProducts = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      console.log('正在获取产品，分类:', selectedCategory);
-      const fetchedProducts = await databaseProductService.getProducts(selectedCategory || undefined);
-      console.log('获取到的产品数量:', fetchedProducts.length);
-      
-      // 去重处理，确保没有重复的产品
-      const uniqueProducts = fetchedProducts.filter((product, index, self) => 
-        index === self.findIndex(p => p.id === product.id)
+  // 产品筛选逻辑
+  useEffect(() => {
+    let filtered = products;
+    
+    // 分类筛选
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(product => product.category === selectedCategory);
+    }
+    
+    // 搜索筛选
+    if (searchTerm) {
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      
-      console.log('去重后的产品数量:', uniqueProducts.length);
-      
-      setProducts(uniqueProducts);
-      setLastUpdated(Date.now());
-    } catch (error) {
-      console.error("获取产品失败:", error);
-      setProducts([]);
-    } finally {
-      setIsLoading(false);
     }
-  }, [selectedCategory]);
-
-  // 监听分类变化
-  useEffect(() => {
-    console.log('分类变化，触发刷新');
-    fetchProducts();
-  }, [selectedCategory, fetchProducts]);
-
-  // 监听lastUpdated变化，确保UI更新
-  useEffect(() => {
-    console.log('产品列表已更新，时间戳:', lastUpdated);
-  }, [lastUpdated]);
-
-  const handleCategoryChange = (category: ProductCategory | null) => {
-    console.log('切换分类:', category);
-    if (category) {
-      setSearchParams({ category });
-    } else {
-      setSearchParams({});
-    }
-  };
+    
+    setFilteredProducts(filtered);
+  }, [products, selectedCategory, searchTerm]);
 
   const handleAddToCart = (product: Product) => {
     addItem(product);
   };
 
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+  };
+
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+  };
+
+  // 获取分类列表（包括"全部"选项）
+  const categoryOptions = [
+    { value: 'all', label: t.products.allWatches },
+    ...Object.values(ProductCategory).map(category => ({
+      value: category,
+      label: category
+    }))
+  ];
+
   return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <h1 className="text-4xl font-serif font-bold text-brand-text mb-2">
-          {selectedCategory ? selectedCategory : "全部腕表"}
-        </h1>
-        <p className="text-brand-text-secondary max-w-xl mx-auto">
-          探索我们精心策划的高端腕表收藏，每一枚都以精湛工艺和满怀激情制作。
-        </p>
+    <div className="min-h-screen" style={{ padding: '0 24px' }}>
+      {/* 页面标题 */}
+      <div className="text-center mb-12">
+        <Title 
+          level={1} 
+          className="text-4xl font-serif font-bold mb-4"
+          style={{
+            background: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}
+        >
+          🕰️ {t.products.allWatches}
+        </Title>
       </div>
 
-      {/* 分类筛选 */}
-      <div className="flex flex-wrap justify-center gap-3 mb-8 p-4 bg-brand-surface rounded-lg shadow-md">
-        <button
-          onClick={() => handleCategoryChange(null)}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-            !selectedCategory ? 'bg-brand-primary text-brand-bg' : 'bg-gray-600 text-brand-text-secondary hover:bg-gray-500'
-          }`}
+      {/* 搜索和筛选栏 */}
+      <div className="mb-8">
+        <Row gutter={[16, 16]} align="middle" justify="center">
+          <Col xs={24} sm={16} md={12} lg={8}>
+            <Search
+              placeholder={t.products.searchPlaceholder}
+              onSearch={handleSearch}
+              onChange={(e) => handleSearch(e.target.value)}
+              style={{ width: '100%' }}
+              prefix={<SearchOutlined style={{ color: '#64748b' }} />}
+              size="large"
+            />
+          </Col>
+          <Col xs={24} sm={8} md={6} lg={4}>
+            <Select
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+              style={{ width: '100%' }}
+              size="large"
+              suffixIcon={<FilterOutlined style={{ color: '#64748b' }} />}
+            >
+              {categoryOptions.map(option => (
+                <Option key={option.value} value={option.value}>
+                  {option.label}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+        </Row>
+      </div>
+
+      {/* 分类快速筛选按钮 */}
+      <div className="flex flex-wrap justify-center gap-3 mb-12 p-6 rounded-xl shadow-sm" style={{ background: '#ffffff', border: '1px solid #e2e8f0' }}>
+        <Button
+          type={selectedCategory === 'all' ? 'primary' : 'default'}
+          onClick={() => handleCategoryChange('all')}
+          className={selectedCategory === 'all' ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200'}
+          style={{ borderRadius: '8px', fontWeight: 500 }}
         >
-          全部腕表
-        </button>
-        {categories.map(cat => (
-          <button
-            key={cat}
-            onClick={() => handleCategoryChange(cat)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-              selectedCategory === cat ? 'bg-brand-primary text-brand-bg' : 'bg-gray-600 text-brand-text-secondary hover:bg-gray-500'
-            }`}
+          {t.products.allWatches}
+        </Button>
+        {Object.values(ProductCategory).map(category => (
+          <Button
+            key={category}
+            type={selectedCategory === category ? 'primary' : 'default'}
+            onClick={() => handleCategoryChange(category)}
+            className={selectedCategory === category ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200'}
+            style={{ borderRadius: '8px', fontWeight: 500 }}
           >
-            {cat}
-          </button>
+            {category}
+          </Button>
         ))}
       </div>
 
+      {/* 产品计数 */}
+      {!isLoading && (
+        <div className="mb-6 text-center">
+          <p className="text-brand-text-secondary text-lg">
+            {formatString(t.products.foundWatches, { count: filteredProducts.length })}
+          </p>
+        </div>
+      )}
+
       {/* 产品列表 */}
       {isLoading ? (
-        <div className="flex justify-center items-center py-12">
-          <LoadingSpinner />
+        <div className="flex justify-center items-center py-20">
+          <LoadingSpinner message={t.common.loading} />
         </div>
-      ) : products.length > 0 ? (
-        <>
-          {/* 调试信息：检查重复ID */}
-          {(() => {
-            const productIds = products.map(p => p.id);
-            const duplicateIds = productIds.filter((id, index) => productIds.indexOf(id) !== index);
-            if (duplicateIds.length > 0) {
-              console.warn('发现重复的产品ID:', duplicateIds);
-              console.warn('所有产品ID:', productIds);
-            }
-            return null;
-          })()}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" key={lastUpdated}>
-            {products.map((product, index) => (
-              <ProductCard
-                key={`${product.id}-${index}`} // 使用组合key避免重复
-                product={product}
-                onAddToCart={() => handleAddToCart(product)}
+      ) : filteredProducts.length > 0 ? (
+        <Row gutter={[24, 24]}>
+          {filteredProducts.map((product, index) => (
+            <Col xs={24} sm={12} md={8} lg={6} key={`${product.id}-${index}`}>
+              <ProductCard 
+                product={product} 
+                onAddToCart={handleAddToCart}
+                showCustomizable={true}
               />
-            ))}
-          </div>
-        </>
+            </Col>
+          ))}
+        </Row>
       ) : (
-        <div className="text-center py-12">
-          <p className="text-brand-text-secondary">暂无相关产品</p>
+        <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+          <Empty
+            image={
+              <div style={{ fontSize: '80px', color: '#cbd5e1', marginBottom: '20px' }}>
+                🕰️
+              </div>
+            }
+            description={
+              <div>
+                <Title level={4} style={{ color: '#64748b', marginBottom: '8px' }}>
+                  {t.products.noProducts}
+                </Title>
+                <p style={{ color: '#94a3b8', fontSize: '16px' }}>
+                  {t.products.tryOtherCategories}
+                </p>
+              </div>
+            }
+          >
+            <Button 
+              type="primary" 
+              size="large"
+              onClick={() => {
+                setSelectedCategory('all');
+                setSearchTerm('');
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '12px 24px',
+                fontWeight: 500
+              }}
+            >
+              {t.products.allWatches}
+            </Button>
+          </Empty>
         </div>
       )}
     </div>

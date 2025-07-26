@@ -242,7 +242,7 @@ const RecommendedProducts: React.FC<RecommendedProductsProps> = ({ user }) => {
                   查看详情
                 </Link>
                 <button className="bg-gray-700 text-brand-text py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">
-                  🛒
+                  🎨
                 </button>
               </div>
             </div>

@@ -3,13 +3,12 @@
  * 数据库初始化、路由管理、认证状态、错误处理、主题系统
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from './components/theme-switcher-new';
 import { AuthProvider } from './hooks/use-auth';
+import { LanguageProvider } from './hooks/use-language';
 import { DatabaseManager } from './database/database-manager';
-
-// 主题系统
-import { ThemeProvider, ThemeSwitcher } from './components/theme-switcher';
 
 // 导入布局组件
 import Header from './components/navigation-header';
@@ -29,6 +28,11 @@ import UserProfilePage from './pages/user-profile';
 import UserCenterPage from './pages/user-center';
 import AboutPage from './pages/brand-story';
 import NotFoundPage from './pages/page-not-found';
+import AntdTest from './components/antd-test';
+import LoadingSpinner from './components/loading-indicator';
+
+// 延迟加载组件
+const LazyCustomizer = React.lazy(() => import('./components/watch-customizer'));
 
 /**
  * 主应用组件 - HashRouter路由，数据库初始化，认证管理，主题系统
@@ -38,6 +42,7 @@ const App: React.FC = () => {
   const [isDbInitialized, setIsDbInitialized] = useState(false);
   // 数据库错误状态
   const [dbError, setDbError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // 数据库初始化
   useEffect(() => {
@@ -56,26 +61,65 @@ const App: React.FC = () => {
     initDatabase();
   }, []);
 
+  // 模拟应用初始化
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        // 模拟一些初始化工作
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setIsLoading(false);
+      } catch (error) {
+        console.error("应用初始化失败:", error);
+        setIsLoading(false);
+      }
+    };
+
+    initializeApp();
+  }, []);
+
   // 数据库错误处理界面
   if (dbError) {
     return (
-      <ThemeProvider>
-        <div className="flex items-center justify-center min-h-screen bg-red-50">
-          <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
-            <div className="text-red-500 text-6xl mb-4">⚠️</div>
-            <h1 className="text-2xl font-bold text-red-600 mb-4">系统初始化失败</h1>
-            <p className="text-gray-600 mb-6">{dbError}</p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="px-6 py-3 bg-brand-primary text-brand-bg rounded-lg hover:bg-brand-primary-dark transition-all duration-200 font-medium"
-            >
-              🔄 重新加载页面
-            </button>
+      <LanguageProvider>
+        <ThemeProvider>
+          <div className="flex items-center justify-center min-h-screen bg-red-50">
+            <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
+              <div className="text-red-500 text-6xl mb-4">⚠️</div>
+              <h1 className="text-2xl font-bold text-red-600 mb-4">系统初始化失败</h1>
+              <p className="text-gray-600 mb-6">{dbError}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="px-6 py-3 bg-brand-primary text-brand-bg rounded-lg hover:bg-brand-primary-dark transition-all duration-200 font-medium"
+              >
+                🔄 重新加载页面
+              </button>
+            </div>
+
           </div>
-          {/* 即使在错误页面也显示主题切换器 */}
-          <ThemeSwitcher />
-        </div>
-      </ThemeProvider>
+        </ThemeProvider>
+      </LanguageProvider>
+    );
+  }
+
+  // 如果应用正在加载，显示加载界面
+  if (isLoading) {
+    return (
+      <LanguageProvider>
+        <ThemeProvider>
+          <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#f1f5f9' }}>
+            <div className="text-center p-8">
+              {/* 加载动画 */}
+              <div className="flex justify-center items-center space-x-2 mb-4">
+                <div className="h-2 w-2 bg-brand-primary rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                <div className="h-2 w-2 bg-brand-primary rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                <div className="h-2 w-2 bg-brand-primary rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+              </div>
+              <h2 className="text-xl font-semibold text-brand-text mb-2">海鸥表官网</h2>
+              <p className="text-brand-text-secondary">正在为您加载精品时计...</p>
+            </div>
+          </div>
+        </ThemeProvider>
+      </LanguageProvider>
     );
   }
 
@@ -83,7 +127,7 @@ const App: React.FC = () => {
   if (!isDbInitialized) {
     return (
       <ThemeProvider>
-        <div className="flex items-center justify-center min-h-screen bg-brand-bg">
+        <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#f1f5f9' }}>
           <div className="text-center p-8">
             {/* 加载动画 */}
             <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-brand-primary border-t-transparent mb-6"></div>
@@ -95,8 +139,7 @@ const App: React.FC = () => {
               <div className="h-2 w-2 bg-brand-primary rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
             </div>
           </div>
-          {/* 加载页面也显示主题切换器 */}
-          <ThemeSwitcher />
+
         </div>
       </ThemeProvider>
     );
@@ -104,53 +147,61 @@ const App: React.FC = () => {
 
   // 主应用路由和布局
   return (
-    <ThemeProvider>
-      <HashRouter>
-        <AuthProvider>
-          <div className="App flex flex-col min-h-screen bg-brand-bg">
-            {/* 页面头部导航 */}
-            <Header />
-            
-            {/* 主要内容区域 */}
-            <main className="main-content flex-grow container mx-auto px-4 py-8">
-              <Routes>
-                {/* 首页 */}
-                <Route path="/" element={<HomePage />} />
-                
-                {/* 产品相关页面 */}
-                <Route path="/products" element={<ProductsPage />} />
-                <Route path="/products/:productId" element={<ProductDetailPage />} />
-                
-                {/* 购物流程页面 */}
-                <Route path="/cart" element={<CartPage />} />
-                <Route path="/checkout" element={<CheckoutPage />} />
-                <Route path="/payment/:orderId" element={<PaymentPage />} />
-                <Route path="/orders" element={<OrdersPage />} />
-                <Route path="/orders/:orderId" element={<OrdersPage />} />
-                
-                {/* 用户认证页面 */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/profile" element={<UserProfilePage />} />
-                <Route path="/user-center" element={<UserCenterPage />} />
-                
-                {/* 品牌信息页面 */}
-                <Route path="/about" element={<AboutPage />} />
-                
-                {/* 404错误页面 */}
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-            </main>
-            
-            {/* 页面底部 */}
-            <Footer />
-            
-            {/* 主题切换器 - 浮动在页面右侧 */}
-            <ThemeSwitcher />
-          </div>
-        </AuthProvider>
-      </HashRouter>
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <HashRouter>
+          <AuthProvider>
+            <div className="App flex flex-col min-h-screen" style={{ backgroundColor: '#f1f5f9' }}>
+              {/* 页面头部导航 */}
+              <Header />
+              
+              {/* 主要内容区域 */}
+              <main className="main-content flex-grow container mx-auto px-4 py-8">
+                <Routes>
+                  {/* 首页 */}
+                  <Route path="/" element={<HomePage />} />
+                  
+                  {/* 产品相关页面 */}
+                  <Route path="/products" element={<ProductsPage />} />
+                  <Route path="/products/:productId" element={<ProductDetailPage />} />
+                  
+                  {/* 购物流程页面 */}
+                  <Route path="/cart" element={<CartPage />} />
+                  <Route path="/checkout" element={<CheckoutPage />} />
+                  <Route path="/payment/:orderId" element={<PaymentPage />} />
+                  <Route path="/orders" element={<OrdersPage />} />
+                  <Route path="/orders/:orderId" element={<OrdersPage />} />
+                  
+                  {/* 用户认证页面 */}
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/profile" element={<UserProfilePage />} />
+                  <Route path="/user-center" element={<UserCenterPage />} />
+                  
+                  {/* 品牌信息页面 */}
+                  <Route path="/about" element={<AboutPage />} />
+                  
+                  {/* Ant Design 测试页面 */}
+                  <Route path="/antd-test" element={<AntdTest />} />
+                  
+                  {/* 产品定制页面 - 暂时重定向到产品详情页 */}
+                  <Route 
+                    path="/customize/:productId" 
+                    element={<ProductDetailPage />}
+                  />
+                  
+                  {/* 404错误页面 */}
+                  <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+              </main>
+              
+              {/* 页面底部 */}
+              <Footer />
+            </div>
+          </AuthProvider>
+        </HashRouter>
+      </ThemeProvider>
+    </LanguageProvider>
   );
 };
 
