@@ -1,37 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../../hooks/use-language';
 import { DatabaseManager } from '../../database/database-manager';
-import { User } from '../../seagull-watch-types';
-
-interface Product {
-  id: string;
-  name: string;
-  brand: string;
-  price: number;
-  originalPrice?: number;
-  imageUrl: string;
-  category: string;
-  description: string;
-  rating: number;
-  isNew?: boolean;
-  isHot?: boolean;
-  discount?: number;
-}
+import { User, Product } from '../../seagull-watch-types';
+import { 
+  HeartOutlined, 
+  FireOutlined, 
+  StarOutlined, 
+  ShoppingCartOutlined,
+  EyeOutlined,
+  ThunderboltOutlined,
+  CrownOutlined,
+  GiftOutlined,
+  TagOutlined
+} from '@ant-design/icons';
 
 interface RecommendedProductsProps {
   user: User;
 }
 
 const RecommendedProducts: React.FC<RecommendedProductsProps> = ({ user }) => {
+  const { t } = useLanguage();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<'all' | 'trending' | 'similar' | 'new'>('all');
 
   const categories = [
-    { id: 'all', name: '全部推荐', icon: '💎' },
-    { id: 'trending', name: '热销推荐', icon: '🔥' },
-    { id: 'similar', name: '相似偏好', icon: '💫' },
-    { id: 'new', name: '新品推荐', icon: '✨' }
+    { 
+      id: 'all' as const, 
+      name: t.userCenter.recommendedForYou, 
+      icon: HeartOutlined,
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-50'
+    },
+    { 
+      id: 'trending' as const, 
+      name: t.userCenter.trending, 
+      icon: FireOutlined,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50'
+    },
+    { 
+      id: 'similar' as const, 
+      name: t.userCenter.basedOnHistory, 
+      icon: StarOutlined,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50'
+    },
+    { 
+      id: 'new' as const, 
+      name: t.userCenter.newArrivals, 
+      icon: GiftOutlined,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50'
+    }
   ];
 
   useEffect(() => {
@@ -44,25 +66,27 @@ const RecommendedProducts: React.FC<RecommendedProductsProps> = ({ user }) => {
       const db = DatabaseManager.getInstance();
       const allProducts = await db.findProducts();
       
-      // 模拟推荐算法：基于用户信息和产品特征生成推荐
-      const recommendedProducts: Product[] = allProducts.map((product: any) => ({
-        id: product.id,
-        name: product.name,
-        brand: product.brand,
-        price: product.price,
-        originalPrice: product.price * 1.2, // 模拟原价
-        imageUrl: product.images && product.images.length > 0 ? product.images[0] : './images/seagull-logo.png', // 使用数据库中的第一张图片
-        category: product.category,
-        description: product.description,
-        rating: 4.2 + Math.random() * 0.8, // 模拟评分
-        isNew: Math.random() > 0.7,
-        isHot: Math.random() > 0.6,
-        discount: Math.random() > 0.5 ? Math.floor(Math.random() * 30) + 10 : undefined
-      })).slice(0, 12); // 限制推荐数量
-
-      setProducts(recommendedProducts);
+      // 将数据库产品转换为Product类型并模拟推荐算法
+      const convertedProducts: Product[] = allProducts.map((dbProduct: any) => ({
+        id: dbProduct.id,
+        name: dbProduct.name,
+        brand: dbProduct.brand,
+        price: dbProduct.price,
+        imageUrl: dbProduct.images && dbProduct.images.length > 0 ? dbProduct.images[0] : './images/seagull-logo.png',
+        galleryImages: dbProduct.images || [],
+        description: dbProduct.description,
+        shortDescription: dbProduct.description ? dbProduct.description.substring(0, 100) + '...' : '',
+        features: dbProduct.features || [],
+        category: dbProduct.category,
+        stock: dbProduct.stock || 10,
+        sku: dbProduct.sku
+      }));
+      
+      const shuffledProducts = [...convertedProducts].sort(() => Math.random() - 0.5);
+      setProducts(shuffledProducts.slice(0, 8));
     } catch (error) {
       console.error('加载推荐产品失败:', error);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -71,179 +95,191 @@ const RecommendedProducts: React.FC<RecommendedProductsProps> = ({ user }) => {
   const getFilteredProducts = () => {
     switch (activeCategory) {
       case 'trending':
-        return products.filter(p => p.isHot);
+        return products.slice(0, 4);
       case 'similar':
-        return products.filter((_, index) => index % 3 === 0); // 模拟相似偏好
+        return products.slice(2, 6);
       case 'new':
-        return products.filter(p => p.isNew);
+        return products.slice(4, 8);
       default:
         return products;
     }
   };
 
-  const formatPrice = (price: number): string => {
-    return price.toLocaleString('zh-CN');
-  };
-
-  const renderStars = (rating: number) => {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
-    const stars = [];
-
-    for (let i = 0; i < fullStars; i++) {
-      stars.push('⭐');
-    }
-    if (hasHalfStar) {
-      stars.push('🌟');
-    }
-
-    return stars.join('');
+  const formatPrice = (price: number) => {
+    return `¥${price.toLocaleString()}`;
   };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-16">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-brand-gold border-t-transparent mx-auto mb-4"></div>
-          <p className="text-brand-text">正在为您推荐精选好表...</p>
+      <div className="space-y-6">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <HeartOutlined className="text-white text-lg" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">{t.userCenter.recommendedForYou}</h2>
+            <p className="text-gray-500 text-sm">{t.userCenter.basedOnHistory}</p>
+          </div>
+        </div>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, index) => (
+            <div key={index} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200/50 animate-pulse">
+              <div className="bg-gray-200 rounded-lg h-48 mb-4"></div>
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-200 rounded"></div>
+                <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-3xl font-semibold text-brand-text flex items-center">
-          <span className="mr-3">💎</span>
-          猜你喜欢
-        </h2>
-        <button 
-          onClick={loadRecommendedProducts}
-          className="px-4 py-2 bg-brand-gold text-brand-bg rounded-lg hover:bg-yellow-600 transition-colors font-medium"
-        >
-          🔄 换一批
-        </button>
-      </div>
-
-      {/* 个性化推荐说明 */}
-      <div className="bg-gradient-to-r from-brand-gold/10 to-yellow-600/10 rounded-xl p-6 mb-8 border border-brand-gold/30">
-        <div className="flex items-start space-x-4">
-          <span className="text-3xl">🎯</span>
-          <div>
-            <h3 className="text-lg font-semibold text-brand-text mb-2">专属推荐</h3>
-            <p className="text-brand-text-secondary">
-              基于您的购买历史、浏览偏好和个人品味，我们为您精心挑选了以下腕表。
-              每一款都经过专业团队的严格筛选，确保品质与您的期待相符。
-            </p>
-          </div>
+    <div className="space-y-6">
+      {/* 头部 */}
+      <div className="flex items-center space-x-3">
+        <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
+          <HeartOutlined className="text-white text-lg" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">{t.userCenter.recommendedForYou}</h2>
+          <p className="text-gray-500 text-sm">{t.userCenter.basedOnHistory}</p>
         </div>
       </div>
 
       {/* 分类筛选 */}
-      <div className="flex flex-wrap gap-3 mb-8">
-        {categories.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => setActiveCategory(category.id as any)}
-            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 ${
-              activeCategory === category.id
-                ? 'bg-brand-gold text-brand-bg shadow-md'
-                : 'bg-gray-700 text-brand-text-secondary hover:bg-gray-600 hover:text-brand-text'
-            }`}
-          >
-            <span>{category.icon}</span>
-            <span>{category.name}</span>
-          </button>
-        ))}
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200/50">
+        <div className="flex flex-wrap gap-3">
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => setActiveCategory(category.id)}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                activeCategory === category.id
+                  ? `${category.bgColor} ${category.color} shadow-sm`
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <category.icon className={`text-lg ${activeCategory === category.id ? category.color : ''}`} />
+              <span className="font-medium">{category.name}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* 产品网格 */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {/* 产品列表 */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         {getFilteredProducts().map((product) => (
-          <div key={product.id} className="bg-gray-800 bg-opacity-30 rounded-xl overflow-hidden border border-gray-700 hover:border-brand-gold transition-all duration-300 hover:shadow-xl group">
+          <div key={product.id} className="group bg-white rounded-xl shadow-sm border border-gray-200/50 overflow-hidden hover:shadow-lg transition-all duration-300">
             {/* 产品图片 */}
             <div className="relative overflow-hidden">
               <img
                 src={product.imageUrl}
                 alt={product.name}
                 className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = './images/seagull-logo.png';
-                }}
-                loading="lazy"
               />
               
               {/* 标签 */}
-              <div className="absolute top-3 left-3 flex flex-col gap-2">
-                {product.isNew && (
-                  <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-                    新品
+              <div className="absolute top-3 left-3 flex flex-col space-y-1">
+                {Math.random() > 0.7 && (
+                  <span className="inline-flex items-center px-2 py-1 bg-red-500 text-white text-xs rounded-full">
+                    <FireOutlined className="mr-1 text-xs" />
+                    {t.userCenter.title === '个人中心' ? '热销' : 'Hot'}
                   </span>
                 )}
-                {product.isHot && (
-                  <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-                    热销
-                  </span>
-                )}
-                {product.discount && (
-                  <span className="bg-brand-gold text-brand-bg text-xs px-2 py-1 rounded-full font-medium">
-                    -{product.discount}%
+                {Math.random() > 0.8 && (
+                  <span className="inline-flex items-center px-2 py-1 bg-green-500 text-white text-xs rounded-full">
+                    <GiftOutlined className="mr-1 text-xs" />
+                    {t.userCenter.title === '个人中心' ? '新品' : 'New'}
                   </span>
                 )}
               </div>
 
-              {/* 快速操作按钮 */}
-              <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <button className="bg-white bg-opacity-20 backdrop-blur-sm text-white p-2 rounded-full hover:bg-opacity-30 transition-colors">
-                  ❤️
-                </button>
+              {/* 悬停操作 */}
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                <div className="flex space-x-2">
+                  <Link
+                    to={`/products/${product.id}`}
+                    className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-600 hover:text-blue-600 transition-colors"
+                  >
+                    <EyeOutlined />
+                  </Link>
+                  <Link
+                    to={`/customize/${product.id}`}
+                    className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors"
+                  >
+                    <ShoppingCartOutlined />
+                  </Link>
+                </div>
               </div>
             </div>
 
             {/* 产品信息 */}
-            <div className="p-4">
-              <div className="mb-2">
-                <h3 className="text-brand-text font-semibold text-lg leading-tight group-hover:text-brand-gold transition-colors">
+            <div className="p-4 space-y-3">
+              <div>
+                <h3 className="font-semibold text-gray-800 truncate group-hover:text-blue-600 transition-colors">
                   {product.name}
                 </h3>
-                <p className="text-brand-text-secondary text-sm">{product.brand}</p>
+                <p className="text-sm text-gray-500">{product.brand}</p>
               </div>
 
               {/* 评分 */}
-              <div className="flex items-center space-x-2 mb-3">
-                <span className="text-yellow-400 text-sm">
-                  {renderStars(product.rating)}
-                </span>
-                <span className="text-brand-text-secondary text-sm">
-                  {product.rating.toFixed(1)}
+              <div className="flex items-center space-x-1">
+                {[...Array(5)].map((_, i) => (
+                  <StarOutlined
+                    key={i}
+                    className={`text-sm ${
+                      i < Math.floor(4 + Math.random())
+                        ? 'text-yellow-400'
+                        : 'text-gray-300'
+                    }`}
+                  />
+                ))}
+                <span className="text-xs text-gray-500 ml-2">
+                  {(4 + Math.random()).toFixed(1)}
                 </span>
               </div>
 
               {/* 价格 */}
-              <div className="flex items-center space-x-2 mb-4">
-                <span className="text-brand-gold font-bold text-xl">
-                  ¥{formatPrice(product.price)}
-                </span>
-                {product.originalPrice && (
-                  <span className="text-brand-text-secondary text-sm line-through">
-                    ¥{formatPrice(product.originalPrice)}
-                  </span>
-                )}
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="text-lg font-bold text-blue-600">
+                    {formatPrice(product.price)}
+                  </div>
+                  {Math.random() > 0.6 && (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-400 line-through">
+                        {formatPrice(Math.floor(product.price * 1.2))}
+                      </span>
+                      <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">
+                        {t.userCenter.title === '个人中心' ? '限时优惠' : 'Sale'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <Link
+                  to={`/customize/${product.id}`}
+                  className="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  {t.userCenter.addToCustomization}
+                </Link>
               </div>
 
-              {/* 操作按钮 */}
-              <div className="flex space-x-2">
-                <Link
-                  to={`/products/${product.id}`}
-                  className="flex-1 bg-brand-gold text-brand-bg py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors font-medium text-center"
-                >
-                  查看详情
-                </Link>
-                <button className="bg-gray-700 text-brand-text py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">
-                  🎨
-                </button>
+              {/* 定制标签 */}
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center space-x-1 text-blue-600">
+                  <CrownOutlined />
+                  <span>{t.products.customizable}</span>
+                </div>
+                <div className="flex items-center space-x-1 text-gray-500">
+                  <ThunderboltOutlined />
+                  <span>{t.userCenter.title === '个人中心' ? '快速定制' : 'Quick Custom'}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -252,79 +288,41 @@ const RecommendedProducts: React.FC<RecommendedProductsProps> = ({ user }) => {
 
       {/* 空状态 */}
       {getFilteredProducts().length === 0 && (
-        <div className="text-center py-16">
-          <span className="text-8xl mb-6 block">🔍</span>
-          <h3 className="text-xl font-semibold text-brand-text mb-2">暂无推荐产品</h3>
-          <p className="text-brand-text-secondary mb-6">
-            试试其他分类或稍后再来看看
-          </p>
-          <button
-            onClick={loadRecommendedProducts}
-            className="px-6 py-3 bg-brand-gold text-brand-bg rounded-lg hover:bg-yellow-600 transition-colors font-medium"
-          >
-            重新推荐
-          </button>
-        </div>
-      )}
-
-      {/* 推荐理由 */}
-      {getFilteredProducts().length > 0 && (
-        <div className="mt-12 bg-gray-800 bg-opacity-30 rounded-xl p-6">
-          <h3 className="text-xl font-semibold text-brand-text mb-4 flex items-center">
-            <span className="mr-3">🧠</span>
-            推荐理由
+        <div className="text-center py-12">
+          <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <HeartOutlined className="text-4xl text-gray-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-600 mb-2">
+            {t.userCenter.title === '个人中心' ? '暂无推荐产品' : 'No recommendations yet'}
           </h3>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="flex items-start space-x-3">
-              <span className="text-2xl">📊</span>
-              <div>
-                <h4 className="text-brand-text font-medium mb-1">个人偏好分析</h4>
-                <p className="text-brand-text text-sm opacity-80">
-                  基于您的浏览和购买历史，推荐符合您品味的腕表
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-start space-x-3">
-              <span className="text-2xl">🔥</span>
-              <div>
-                <h4 className="text-brand-text font-medium mb-1">热门趋势</h4>
-                <p className="text-brand-text text-sm opacity-80">
-                  结合当前流行趋势和其他用户的购买行为
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-start space-x-3">
-              <span className="text-2xl">⭐</span>
-              <div>
-                <h4 className="text-brand-text font-medium mb-1">品质保证</h4>
-                <p className="text-brand-text text-sm opacity-80">
-                  只推荐高评分和优质品牌的精选产品
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 底部行动呼吁 */}
-      <div className="mt-8 text-center">
-        <div className="inline-flex items-center space-x-4 bg-gradient-to-r from-brand-gold/20 to-yellow-600/20 rounded-xl p-6 border border-brand-gold/30">
-          <span className="text-3xl">💼</span>
-          <div className="text-left">
-            <h4 className="text-brand-text font-semibold mb-1">找不到心仪的腕表？</h4>
-            <p className="text-brand-text-secondary text-sm">浏览全部产品，发现更多精彩</p>
-          </div>
+          <p className="text-gray-500 mb-6">
+            {t.userCenter.title === '个人中心' 
+              ? '浏览更多产品来获得个性化推荐' 
+              : 'Browse more products to get personalized recommendations'
+            }
+          </p>
           <Link
             to="/products"
-            className="px-6 py-3 bg-brand-gold text-brand-bg rounded-lg hover:bg-yellow-600 transition-colors font-medium whitespace-nowrap"
+            className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            查看全部
+            <ShoppingCartOutlined />
+            <span>{t.userCenter.title === '个人中心' ? '浏览产品' : 'Browse Products'}</span>
           </Link>
         </div>
-      </div>
+      )}
+
+      {/* 查看更多 */}
+      {getFilteredProducts().length > 0 && (
+        <div className="text-center">
+          <Link
+            to="/products"
+            className="inline-flex items-center space-x-2 px-6 py-3 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+          >
+            <EyeOutlined />
+            <span>{t.userCenter.title === '个人中心' ? '查看全部产品' : 'View All Products'}</span>
+          </Link>
+        </div>
+      )}
     </div>
   );
 };

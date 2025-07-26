@@ -85,6 +85,7 @@ export enum OrderStatus {
 
 // 收货地址接口
 export interface ShippingAddress {
+  id?: string;            // 地址ID（用于地址管理）
   name: string;           // 收件人姓名
   phone: string;          // 联系电话
   province: string;       // 省份
@@ -92,6 +93,7 @@ export interface ShippingAddress {
   district: string;       // 区县
   address: string;        // 详细地址
   postalCode?: string;    // 邮政编码
+  isDefault?: boolean;    // 是否为默认地址
 }
 
 // 订单商品项接口
@@ -102,6 +104,8 @@ export interface OrderItem {
   quantity: number;       // 数量
   imageUrl: string;       // 产品图片
   sku: string;           // 产品编码
+  isCustomized?: boolean; // 是否为定制产品（可选）
+  customization?: CustomizationDetails; // 定制配置详情（可选）
 }
 
 // 订单接口

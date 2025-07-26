@@ -1,27 +1,40 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/use-auth';
-import { User } from '../../seagull-watch-types';
+import { useLanguage } from '../../hooks/use-language';
+import { User, ShippingAddress } from '../../seagull-watch-types';
+import { 
+  UserOutlined, 
+  EnvironmentOutlined, 
+  LockOutlined, 
+  SettingOutlined,
+  SaveOutlined,
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  StarOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  BellOutlined,
+  CheckCircleOutlined,
+  EyeInvisibleOutlined,
+  EyeTwoTone
+} from '@ant-design/icons';
 
 interface UserSettingsProps {
   user: User;
 }
 
-interface ShippingAddress {
-  id: string;
-  name: string;
-  phone: string;
-  province: string;
-  city: string;
-  district: string;
-  address: string;
-  isDefault: boolean;
-}
-
 const UserSettings: React.FC<UserSettingsProps> = ({ user }) => {
   const { updateProfile, changePassword } = useAuth();
+  const { t } = useLanguage();
   const [activeSection, setActiveSection] = useState<'profile' | 'addresses' | 'password' | 'preferences'>('profile');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showPassword, setShowPassword] = useState({
+    old: false,
+    new: false,
+    confirm: false
+  });
 
   // 个人信息表单
   const [profileData, setProfileData] = useState({
@@ -44,10 +57,10 @@ const UserSettings: React.FC<UserSettingsProps> = ({ user }) => {
       id: '1',
       name: user.name,
       phone: user.phone || '',
-      province: '上海市',
-      city: '上海市',
-      district: '浦东新区',
-      address: '陆家嘴金融中心 888号',
+      province: t.userCenter.title === '个人中心' ? '上海市' : 'Shanghai',
+      city: t.userCenter.title === '个人中心' ? '上海市' : 'Shanghai',
+      district: t.userCenter.title === '个人中心' ? '浦东新区' : 'Pudong District',
+      address: t.userCenter.title === '个人中心' ? '陆家嘴金融中心 888号' : '888 Lujiazui Financial Center',
       isDefault: true
     }
   ]);
@@ -67,7 +80,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ user }) => {
 
   const showMessage = (type: 'success' | 'error', text: string) => {
     setMessage({ type, text });
-    setTimeout(() => setMessage(null), 3000);
+    setTimeout(() => setMessage(null), 5000);
   };
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -76,9 +89,9 @@ const UserSettings: React.FC<UserSettingsProps> = ({ user }) => {
     
     try {
       await updateProfile(profileData);
-      showMessage('success', '个人信息更新成功！');
+      showMessage('success', t.userCenter.title === '个人中心' ? '个人信息更新成功！' : 'Profile updated successfully!');
     } catch (error) {
-      showMessage('error', '更新失败，请重试。');
+      showMessage('error', t.userCenter.title === '个人中心' ? '更新失败，请重试。' : 'Update failed, please try again.');
     } finally {
       setLoading(false);
     }
@@ -88,12 +101,12 @@ const UserSettings: React.FC<UserSettingsProps> = ({ user }) => {
     e.preventDefault();
     
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      showMessage('error', '两次输入的密码不一致！');
+      showMessage('error', t.userCenter.title === '个人中心' ? '两次输入的密码不一致！' : 'Passwords do not match!');
       return;
     }
     
     if (passwordData.newPassword.length < 6) {
-      showMessage('error', '新密码长度至少6位！');
+      showMessage('error', t.userCenter.title === '个人中心' ? '新密码长度至少6位！' : 'Password must be at least 6 characters!');
       return;
     }
 
@@ -101,498 +114,517 @@ const UserSettings: React.FC<UserSettingsProps> = ({ user }) => {
     
     try {
       await changePassword(passwordData.oldPassword, passwordData.newPassword);
-      showMessage('success', '密码修改成功！');
+      showMessage('success', t.userCenter.title === '个人中心' ? '密码修改成功！' : 'Password changed successfully!');
       setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
-      showMessage('error', '密码修改失败，请检查原密码是否正确。');
+      showMessage('error', t.userCenter.title === '个人中心' ? '密码修改失败，请重试。' : 'Password change failed, please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddressSubmit = (e: React.FormEvent) => {
+  const handleAddressSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!addressForm.name || !addressForm.phone || !addressForm.address) {
-      showMessage('error', '请填写完整的地址信息！');
-      return;
-    }
-
-    const newAddress: ShippingAddress = {
-      id: editingAddressId || Date.now().toString(),
-      name: addressForm.name!,
-      phone: addressForm.phone!,
-      province: addressForm.province || '上海市',
-      city: addressForm.city || '上海市',
-      district: addressForm.district || '',
-      address: addressForm.address!,
-      isDefault: addressForm.isDefault || false
-    };
-
     if (editingAddressId) {
-      setAddresses(addresses.map(addr => addr.id === editingAddressId ? newAddress : addr));
-      showMessage('success', '地址更新成功！');
+      // 编辑地址
+      setAddresses(prev => prev.map(addr => 
+        addr.id === editingAddressId 
+          ? { ...addr, ...addressForm } as ShippingAddress
+          : addr
+      ));
+      showMessage('success', t.userCenter.title === '个人中心' ? '地址更新成功！' : 'Address updated successfully!');
     } else {
-      setAddresses([...addresses, newAddress]);
-      showMessage('success', '地址添加成功！');
+      // 添加新地址
+      const newAddress: ShippingAddress = {
+        id: Date.now().toString(),
+        ...addressForm as ShippingAddress,
+        isDefault: addresses.length === 0
+      };
+      setAddresses(prev => [...prev, newAddress]);
+      showMessage('success', t.userCenter.title === '个人中心' ? '地址添加成功！' : 'Address added successfully!');
     }
-
-    setAddressForm({});
+    
     setShowAddressForm(false);
+    setAddressForm({});
     setEditingAddressId(null);
   };
 
   const handleDeleteAddress = (id: string) => {
-    if (window.confirm('确定要删除此地址吗？')) {
-      setAddresses(addresses.filter(addr => addr.id !== id));
-      showMessage('success', '地址删除成功！');
+    if (window.confirm(t.userCenter.title === '个人中心' ? '确定要删除这个地址吗？' : 'Are you sure you want to delete this address?')) {
+      setAddresses(prev => prev.filter(addr => addr.id !== id));
+      showMessage('success', t.userCenter.title === '个人中心' ? '地址删除成功！' : 'Address deleted successfully!');
     }
   };
 
   const handleSetDefaultAddress = (id: string) => {
-    setAddresses(addresses.map(addr => ({
+    setAddresses(prev => prev.map(addr => ({
       ...addr,
       isDefault: addr.id === id
     })));
-    showMessage('success', '默认地址设置成功！');
+    showMessage('success', t.userCenter.title === '个人中心' ? '默认地址设置成功！' : 'Default address set successfully!');
   };
 
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('zh-CN');
-  };
+  const sections = [
+    {
+      key: 'profile',
+      icon: UserOutlined,
+      label: t.userCenter.personalInfo,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50'
+    },
+    {
+      key: 'addresses',
+      icon: EnvironmentOutlined,
+      label: t.userCenter.addressManagement,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50'
+    },
+    {
+      key: 'password',
+      icon: LockOutlined,
+      label: t.userCenter.passwordChange,
+      color: 'text-red-600',
+      bgColor: 'bg-red-50'
+    },
+    {
+      key: 'preferences',
+      icon: BellOutlined,
+      label: t.userCenter.preferences,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50'
+    }
+  ];
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-3xl font-semibold text-brand-text flex items-center">
-          <span className="mr-3">⚙️</span>
-          设置
-        </h2>
+    <div className="space-y-6">
+      {/* 头部 */}
+      <div className="flex items-center space-x-3">
+        <div className="w-10 h-10 bg-gradient-to-br from-gray-500 to-gray-600 rounded-lg flex items-center justify-center">
+          <SettingOutlined className="text-white text-lg" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">{t.userCenter.settings}</h2>
+          <p className="text-gray-500 text-sm">{t.userCenter.profileSettings}</p>
+        </div>
       </div>
 
+      {/* 消息提示 */}
       {message && (
-        <div className={`mb-6 p-4 rounded-lg border ${
+        <div className={`p-4 rounded-lg border ${
           message.type === 'success' 
-            ? 'bg-green-500 bg-opacity-20 border-green-500 text-green-400' 
-            : 'bg-red-500 bg-opacity-20 border-red-500 text-red-400'
-        }`}>
-          {message.text}
-        </div>
-      )}
-
-      {/* 设置导航标签 */}
-      <div className="flex flex-wrap gap-3 mb-8">
-        <button
-          onClick={() => setActiveSection('profile')}
-          className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-            activeSection === 'profile'
-              ? 'bg-brand-gold text-brand-bg shadow-md'
-              : 'bg-gray-700 text-brand-text-secondary hover:bg-gray-600 hover:text-brand-text'
-          }`}
-        >
-          👤 个人信息
-        </button>
-        
-        <button
-          onClick={() => setActiveSection('addresses')}
-          className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-            activeSection === 'addresses'
-              ? 'bg-brand-gold text-brand-bg shadow-md'
-              : 'bg-gray-700 text-brand-text-secondary hover:bg-gray-600 hover:text-brand-text'
-          }`}
-        >
-          📍 收货地址
-        </button>
-        
-        <button
-          onClick={() => setActiveSection('password')}
-          className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-            activeSection === 'password'
-              ? 'bg-brand-gold text-brand-bg shadow-md'
-              : 'bg-gray-700 text-brand-text-secondary hover:bg-gray-600 hover:text-brand-text'
-          }`}
-        >
-          🔒 修改密码
-        </button>
-        
-        <button
-          onClick={() => setActiveSection('preferences')}
-          className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-            activeSection === 'preferences'
-              ? 'bg-brand-gold text-brand-bg shadow-md'
-              : 'bg-gray-700 text-brand-text-secondary hover:bg-gray-600 hover:text-brand-text'
-          }`}
-        >
-          🔔 通知偏好
-        </button>
-      </div>
-
-      {/* 个人信息设置 */}
-      {activeSection === 'profile' && (
-        <div className="bg-gray-800 bg-opacity-30 rounded-xl p-6">
-          <h3 className="text-xl font-semibold text-brand-text mb-6">个人信息</h3>
-          
-          <form onSubmit={handleProfileUpdate} className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-brand-text mb-2 font-medium">姓名</label>
-                <input
-                  type="text"
-                  value={profileData.name}
-                  onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-brand-text focus:outline-none focus:border-brand-gold"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-brand-text mb-2 font-medium">邮箱</label>
-                <input
-                  type="email"
-                  value={profileData.email}
-                  onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-brand-text focus:outline-none focus:border-brand-gold"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-brand-text mb-2 font-medium">手机号</label>
-                <input
-                  type="tel"
-                  value={profileData.phone}
-                  onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-brand-text focus:outline-none focus:border-brand-gold"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-brand-text mb-2 font-medium">注册时间</label>
-                <div className="px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-brand-text">
-                  {formatDate(user.createdAt)}
-                </div>
-              </div>
-            </div>
-            
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-3 bg-brand-gold text-brand-bg rounded-lg hover:bg-yellow-600 transition-colors font-medium disabled:opacity-50"
-            >
-              {loading ? '更新中...' : '保存修改'}
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* 收货地址管理 */}
-      {activeSection === 'addresses' && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h3 className="text-xl font-semibold text-brand-text">收货地址</h3>
-            <button
-              onClick={() => {
-                setAddressForm({});
-                setEditingAddressId(null);
-                setShowAddressForm(true);
-              }}
-              className="px-4 py-2 bg-brand-gold text-brand-bg rounded-lg hover:bg-yellow-600 transition-colors font-medium"
-            >
-              ➕ 添加地址
-            </button>
+            ? 'bg-green-50 border-green-200 text-green-800' 
+            : 'bg-red-50 border-red-200 text-red-800'
+        } transition-all duration-300`}>
+          <div className="flex items-center space-x-2">
+            <CheckCircleOutlined className={message.type === 'success' ? 'text-green-600' : 'text-red-600'} />
+            <span className="font-medium">{message.text}</span>
           </div>
+        </div>
+      )}
 
-          {/* 地址列表 */}
-          <div className="space-y-4">
-            {addresses.map((address) => (
-              <div key={address.id} className="bg-gray-800 bg-opacity-30 rounded-xl p-6 border border-gray-700">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h4 className="text-brand-text font-semibold">{address.name}</h4>
-                      <span className="text-brand-text opacity-80">{address.phone}</span>
-                      {address.isDefault && (
-                        <span className="bg-brand-gold bg-opacity-20 text-white text-xs px-2 py-1 rounded-full">
-                          默认地址
-                        </span>
-                      )}
+      <div className="grid lg:grid-cols-4 gap-6">
+        {/* 侧边栏导航 */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200/50 p-2">
+            <nav className="space-y-1">
+              {sections.map((section) => (
+                <button
+                  key={section.key}
+                  onClick={() => setActiveSection(section.key as typeof activeSection)}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    activeSection === section.key
+                      ? `${section.bgColor} ${section.color} shadow-sm`
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <section.icon className={`text-lg ${activeSection === section.key ? section.color : ''}`} />
+                  <span className="font-medium">{section.label}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+
+        {/* 主内容区 */}
+        <div className="lg:col-span-3">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200/50 p-6">
+            {/* 个人资料 */}
+            {activeSection === 'profile' && (
+              <div className="space-y-6">
+                <div className="flex items-center space-x-2 mb-6">
+                  <UserOutlined className="text-blue-600 text-xl" />
+                  <h3 className="text-xl font-bold text-gray-800">{t.userCenter.personalInfo}</h3>
+                </div>
+
+                <form onSubmit={handleProfileUpdate} className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t.forms.firstName}
+                      </label>
+                      <div className="relative">
+                        <UserOutlined className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="text"
+                          value={profileData.name}
+                          onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          placeholder={t.userCenter.title === '个人中心' ? '请输入姓名' : 'Enter your name'}
+                        />
+                      </div>
                     </div>
-                    <p className="text-brand-text-secondary">
-                      {address.province} {address.city} {address.district} {address.address}
-                    </p>
-                  </div>
-                  
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => {
-                        setAddressForm(address);
-                        setEditingAddressId(address.id);
-                        setShowAddressForm(true);
-                      }}
-                      className="text-brand-gold hover:text-yellow-300 transition-colors"
-                    >
-                      编辑
-                    </button>
-                    {!address.isDefault && (
-                      <button
-                        onClick={() => handleSetDefaultAddress(address.id)}
-                        className="text-blue-400 hover:text-blue-300 transition-colors"
-                      >
-                        设为默认
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleDeleteAddress(address.id)}
-                      className="text-red-400 hover:text-red-300 transition-colors"
-                    >
-                      删除
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
 
-          {/* 地址表单 */}
-          {showAddressForm && (
-            <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-brand-gold">
-              <h4 className="text-lg font-semibold text-brand-text mb-4">
-                {editingAddressId ? '编辑地址' : '添加新地址'}
-              </h4>
-              
-              <form onSubmit={handleAddressSubmit} className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-brand-text-secondary mb-2">收件人姓名</label>
-                    <input
-                      type="text"
-                      value={addressForm.name || ''}
-                      onChange={(e) => setAddressForm({...addressForm, name: e.target.value})}
-                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-brand-text focus:outline-none focus:border-brand-gold"
-                      required
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t.forms.email}
+                      </label>
+                      <div className="relative">
+                        <MailOutlined className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="email"
+                          value={profileData.email}
+                          onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          placeholder={t.userCenter.title === '个人中心' ? '请输入邮箱' : 'Enter your email'}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t.forms.phone}
+                      </label>
+                      <div className="relative">
+                        <PhoneOutlined className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="tel"
+                          value={profileData.phone}
+                          onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          placeholder={t.userCenter.title === '个人中心' ? '请输入手机号' : 'Enter your phone'}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div>
-                    <label className="block text-brand-text-secondary mb-2">手机号</label>
-                    <input
-                      type="tel"
-                      value={addressForm.phone || ''}
-                      onChange={(e) => setAddressForm({...addressForm, phone: e.target.value})}
-                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-brand-text focus:outline-none focus:border-brand-gold"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-brand-text-secondary mb-2">省份</label>
-                    <select
-                      value={addressForm.province || '上海市'}
-                      onChange={(e) => setAddressForm({...addressForm, province: e.target.value})}
-                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-brand-text focus:outline-none focus:border-brand-gold"
+
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all"
                     >
-                      <option value="上海市">上海市</option>
-                      <option value="北京市">北京市</option>
-                      <option value="广东省">广东省</option>
-                      <option value="江苏省">江苏省</option>
-                      <option value="浙江省">浙江省</option>
-                    </select>
+                      <SaveOutlined />
+                      <span>{loading ? (t.userCenter.title === '个人中心' ? '保存中...' : 'Saving...') : t.common.save}</span>
+                    </button>
                   </div>
-                  
-                  <div>
-                    <label className="block text-brand-text-secondary mb-2">城市</label>
-                    <input
-                      type="text"
-                      value={addressForm.city || ''}
-                      onChange={(e) => setAddressForm({...addressForm, city: e.target.value})}
-                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-brand-text focus:outline-none focus:border-brand-gold"
-                      placeholder="请输入城市"
-                    />
+                </form>
+              </div>
+            )}
+
+            {/* 地址管理 */}
+            {activeSection === 'addresses' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <EnvironmentOutlined className="text-green-600 text-xl" />
+                    <h3 className="text-xl font-bold text-gray-800">{t.userCenter.addressManagement}</h3>
                   </div>
-                </div>
-                
-                <div>
-                  <label className="block text-brand-text-secondary mb-2">详细地址</label>
-                  <textarea
-                    value={addressForm.address || ''}
-                    onChange={(e) => setAddressForm({...addressForm, address: e.target.value})}
-                    rows={3}
-                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-brand-text focus:outline-none focus:border-brand-gold"
-                    placeholder="请输入详细地址"
-                    required
-                  />
-                </div>
-                
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id="isDefault"
-                    checked={addressForm.isDefault || false}
-                    onChange={(e) => setAddressForm({...addressForm, isDefault: e.target.checked})}
-                    className="w-4 h-4 text-brand-gold bg-gray-700 border-gray-600 rounded focus:ring-brand-gold"
-                  />
-                  <label htmlFor="isDefault" className="text-brand-text-secondary">
-                    设为默认地址
-                  </label>
-                </div>
-                
-                <div className="flex space-x-4">
                   <button
-                    type="submit"
-                    className="px-6 py-3 bg-brand-gold text-brand-bg rounded-lg hover:bg-yellow-600 transition-colors font-medium"
-                  >
-                    {editingAddressId ? '更新地址' : '保存地址'}
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => {
-                      setShowAddressForm(false);
-                      setAddressForm({});
+                      setShowAddressForm(true);
                       setEditingAddressId(null);
+                      setAddressForm({});
                     }}
-                    className="px-6 py-3 bg-gray-600 text-brand-text rounded-lg hover:bg-gray-500 transition-colors font-medium"
+                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all"
                   >
-                    取消
+                    <PlusOutlined />
+                    <span>{t.userCenter.addNewAddress}</span>
                   </button>
                 </div>
-              </form>
-            </div>
-          )}
-        </div>
-      )}
 
-      {/* 密码修改 */}
-      {activeSection === 'password' && (
-        <div className="bg-gray-800 bg-opacity-30 rounded-xl p-6">
-          <h3 className="text-xl font-semibold text-brand-text mb-6">修改密码</h3>
-          
-          <form onSubmit={handlePasswordChange} className="space-y-6 max-w-md">
-            <div>
-              <label className="block text-brand-text-secondary mb-2">当前密码</label>
-              <input
-                type="password"
-                value={passwordData.oldPassword}
-                onChange={(e) => setPasswordData({...passwordData, oldPassword: e.target.value})}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-brand-text focus:outline-none focus:border-brand-gold"
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-brand-text-secondary mb-2">新密码</label>
-              <input
-                type="password"
-                value={passwordData.newPassword}
-                onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-brand-text focus:outline-none focus:border-brand-gold"
-                required
-                minLength={6}
-              />
-              <p className="text-brand-text-secondary text-sm mt-1">密码长度至少6位</p>
-            </div>
-            
-            <div>
-              <label className="block text-brand-text-secondary mb-2">确认新密码</label>
-              <input
-                type="password"
-                value={passwordData.confirmPassword}
-                onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-brand-text focus:outline-none focus:border-brand-gold"
-                required
-              />
-            </div>
-            
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-3 bg-brand-gold text-brand-bg rounded-lg hover:bg-yellow-600 transition-colors font-medium disabled:opacity-50"
-            >
-              {loading ? '修改中...' : '修改密码'}
-            </button>
-          </form>
-        </div>
-      )}
+                {/* 地址列表 */}
+                <div className="space-y-4">
+                  {addresses.map((address) => (
+                    <div key={address.id} className="border border-gray-200 rounded-lg p-4 hover:border-green-300 transition-all">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <h4 className="font-semibold text-gray-800">{address.name}</h4>
+                            <span className="text-gray-500">{address.phone}</span>
+                            {address.isDefault && (
+                              <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                                <StarOutlined className="mr-1 text-xs" />
+                                {t.userCenter.defaultAddress}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-gray-600">
+                            {address.province} {address.city} {address.district}
+                          </p>
+                          <p className="text-gray-600">{address.address}</p>
+                        </div>
+                        
+                        <div className="flex space-x-2">
+                          {!address.isDefault && (
+                            <button
+                              onClick={() => handleSetDefaultAddress(address.id)}
+                              className="px-3 py-1 text-green-600 border border-green-300 rounded hover:bg-green-50 transition-all text-sm"
+                            >
+                              {t.userCenter.setAsDefault}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              setEditingAddressId(address.id);
+                              setAddressForm(address);
+                              setShowAddressForm(true);
+                            }}
+                            className="px-3 py-1 text-blue-600 border border-blue-300 rounded hover:bg-blue-50 transition-all text-sm"
+                          >
+                            <EditOutlined />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteAddress(address.id)}
+                            className="px-3 py-1 text-red-600 border border-red-300 rounded hover:bg-red-50 transition-all text-sm"
+                          >
+                            <DeleteOutlined />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-      {/* 通知偏好 */}
-      {activeSection === 'preferences' && (
-        <div className="bg-gray-800 bg-opacity-30 rounded-xl p-6">
-          <h3 className="text-xl font-semibold text-brand-text mb-6">通知偏好</h3>
-          
-          <div className="space-y-6">
-            <div className="flex items-center justify-between py-3 border-b border-gray-700">
-              <div>
-                <h4 className="text-brand-text font-medium">邮件通知</h4>
-                <p className="text-brand-text-secondary text-sm">接收重要的账户和订单通知</p>
+                {/* 地址表单 */}
+                {showAddressForm && (
+                  <div className="border-t border-gray-200 pt-6">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                      {editingAddressId ? t.userCenter.editAddress : t.userCenter.addNewAddress}
+                    </h4>
+                    
+                    <form onSubmit={handleAddressSubmit} className="space-y-4">
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <input
+                          type="text"
+                          value={addressForm.name || ''}
+                          onChange={(e) => setAddressForm({ ...addressForm, name: e.target.value })}
+                          placeholder={t.userCenter.title === '个人中心' ? '收件人姓名' : 'Recipient Name'}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          required
+                        />
+                        <input
+                          type="tel"
+                          value={addressForm.phone || ''}
+                          onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
+                          placeholder={t.userCenter.title === '个人中心' ? '联系电话' : 'Phone Number'}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          required
+                        />
+                        <input
+                          type="text"
+                          value={addressForm.province || ''}
+                          onChange={(e) => setAddressForm({ ...addressForm, province: e.target.value })}
+                          placeholder={t.userCenter.title === '个人中心' ? '省份' : 'Province'}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          required
+                        />
+                        <input
+                          type="text"
+                          value={addressForm.city || ''}
+                          onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
+                          placeholder={t.userCenter.title === '个人中心' ? '城市' : 'City'}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          required
+                        />
+                        <input
+                          type="text"
+                          value={addressForm.district || ''}
+                          onChange={(e) => setAddressForm({ ...addressForm, district: e.target.value })}
+                          placeholder={t.userCenter.title === '个人中心' ? '区县' : 'District'}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          required
+                        />
+                        <input
+                          type="text"
+                          value={addressForm.address || ''}
+                          onChange={(e) => setAddressForm({ ...addressForm, address: e.target.value })}
+                          placeholder={t.userCenter.title === '个人中心' ? '详细地址' : 'Detailed Address'}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          required
+                        />
+                      </div>
+                      
+                      <div className="flex justify-end space-x-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowAddressForm(false);
+                            setAddressForm({});
+                            setEditingAddressId(null);
+                          }}
+                          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                        >
+                          {t.common.cancel}
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all"
+                        >
+                          {t.common.save}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
               </div>
-              <input
-                type="checkbox"
-                checked={preferences.emailNotifications}
-                onChange={(e) => setPreferences({...preferences, emailNotifications: e.target.checked})}
-                className="w-5 h-5 text-brand-gold bg-gray-700 border-gray-600 rounded focus:ring-brand-gold"
-              />
-            </div>
-            
-            <div className="flex items-center justify-between py-3 border-b border-gray-700">
-              <div>
-                <h4 className="text-brand-text font-medium">短信通知</h4>
-                <p className="text-brand-text-secondary text-sm">接收订单状态更新短信</p>
+            )}
+
+            {/* 密码修改 */}
+            {activeSection === 'password' && (
+              <div className="space-y-6">
+                <div className="flex items-center space-x-2 mb-6">
+                  <LockOutlined className="text-red-600 text-xl" />
+                  <h3 className="text-xl font-bold text-gray-800">{t.userCenter.passwordChange}</h3>
+                </div>
+
+                <form onSubmit={handlePasswordChange} className="space-y-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t.userCenter.title === '个人中心' ? '当前密码' : 'Current Password'}
+                      </label>
+                      <div className="relative">
+                        <LockOutlined className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type={showPassword.old ? 'text' : 'password'}
+                          value={passwordData.oldPassword}
+                          onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
+                          className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                          placeholder={t.userCenter.title === '个人中心' ? '请输入当前密码' : 'Enter current password'}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword({ ...showPassword, old: !showPassword.old })}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword.old ? <EyeTwoTone /> : <EyeInvisibleOutlined />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t.userCenter.title === '个人中心' ? '新密码' : 'New Password'}
+                      </label>
+                      <div className="relative">
+                        <LockOutlined className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type={showPassword.new ? 'text' : 'password'}
+                          value={passwordData.newPassword}
+                          onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                          className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                          placeholder={t.userCenter.title === '个人中心' ? '请输入新密码' : 'Enter new password'}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword({ ...showPassword, new: !showPassword.new })}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword.new ? <EyeTwoTone /> : <EyeInvisibleOutlined />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t.forms.confirmPassword}
+                      </label>
+                      <div className="relative">
+                        <LockOutlined className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type={showPassword.confirm ? 'text' : 'password'}
+                          value={passwordData.confirmPassword}
+                          onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                          className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                          placeholder={t.userCenter.title === '个人中心' ? '请再次输入新密码' : 'Confirm new password'}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword({ ...showPassword, confirm: !showPassword.confirm })}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword.confirm ? <EyeTwoTone /> : <EyeInvisibleOutlined />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex items-center space-x-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-all"
+                    >
+                      <SaveOutlined />
+                      <span>{loading ? (t.userCenter.title === '个人中心' ? '修改中...' : 'Changing...') : (t.userCenter.title === '个人中心' ? '修改密码' : 'Change Password')}</span>
+                    </button>
+                  </div>
+                </form>
               </div>
-              <input
-                type="checkbox"
-                checked={preferences.smsNotifications}
-                onChange={(e) => setPreferences({...preferences, smsNotifications: e.target.checked})}
-                className="w-5 h-5 text-brand-gold bg-gray-700 border-gray-600 rounded focus:ring-brand-gold"
-              />
-            </div>
-            
-            <div className="flex items-center justify-between py-3 border-b border-gray-700">
-              <div>
-                <h4 className="text-brand-text font-medium">促销邮件</h4>
-                <p className="text-brand-text-secondary text-sm">接收促销活动和优惠信息</p>
+            )}
+
+            {/* 偏好设置 */}
+            {activeSection === 'preferences' && (
+              <div className="space-y-6">
+                <div className="flex items-center space-x-2 mb-6">
+                  <BellOutlined className="text-purple-600 text-xl" />
+                  <h3 className="text-xl font-bold text-gray-800">{t.userCenter.preferences}</h3>
+                </div>
+
+                <div className="space-y-6">
+                  {[
+                    { key: 'emailNotifications', label: t.userCenter.emailNotifications, description: t.userCenter.title === '个人中心' ? '接收重要邮件通知' : 'Receive important email notifications' },
+                    { key: 'smsNotifications', label: t.userCenter.smsNotifications, description: t.userCenter.title === '个人中心' ? '接收短信通知' : 'Receive SMS notifications' },
+                    { key: 'promotionalEmails', label: t.userCenter.promotionalEmails, description: t.userCenter.title === '个人中心' ? '接收促销活动邮件' : 'Receive promotional emails' },
+                    { key: 'orderUpdates', label: t.userCenter.orderUpdates, description: t.userCenter.title === '个人中心' ? '订单状态更新通知' : 'Order status update notifications' },
+                    { key: 'newsletter', label: t.userCenter.newsletter, description: t.userCenter.title === '个人中心' ? '订阅品牌资讯' : 'Subscribe to brand news' },
+                  ].map((pref) => (
+                    <div key={pref.key} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-purple-300 transition-all">
+                      <div>
+                        <h4 className="font-medium text-gray-800">{pref.label}</h4>
+                        <p className="text-sm text-gray-500">{pref.description}</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={preferences[pref.key as keyof typeof preferences]}
+                          onChange={(e) => setPreferences({ ...preferences, [pref.key]: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => showMessage('success', t.userCenter.title === '个人中心' ? '偏好设置已保存！' : 'Preferences saved!')}
+                    className="flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all"
+                  >
+                    <SaveOutlined />
+                    <span>{t.common.save}</span>
+                  </button>
+                </div>
               </div>
-              <input
-                type="checkbox"
-                checked={preferences.promotionalEmails}
-                onChange={(e) => setPreferences({...preferences, promotionalEmails: e.target.checked})}
-                className="w-5 h-5 text-brand-gold bg-gray-700 border-gray-600 rounded focus:ring-brand-gold"
-              />
-            </div>
-            
-            <div className="flex items-center justify-between py-3 border-b border-gray-700">
-              <div>
-                <h4 className="text-brand-text font-medium">订单更新</h4>
-                <p className="text-brand-text-secondary text-sm">订单状态变化时发送通知</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={preferences.orderUpdates}
-                onChange={(e) => setPreferences({...preferences, orderUpdates: e.target.checked})}
-                className="w-5 h-5 text-brand-gold bg-gray-700 border-gray-600 rounded focus:ring-brand-gold"
-              />
-            </div>
-            
-            <div className="flex items-center justify-between py-3">
-              <div>
-                <h4 className="text-brand-text font-medium">新闻资讯</h4>
-                <p className="text-brand-text-secondary text-sm">接收品牌新闻和产品资讯</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={preferences.newsletter}
-                onChange={(e) => setPreferences({...preferences, newsletter: e.target.checked})}
-                className="w-5 h-5 text-brand-gold bg-gray-700 border-gray-600 rounded focus:ring-brand-gold"
-              />
-            </div>
+            )}
           </div>
-          
-          <button
-            onClick={() => showMessage('success', '偏好设置已保存！')}
-            className="mt-6 px-6 py-3 bg-brand-gold text-brand-bg rounded-lg hover:bg-yellow-600 transition-colors font-medium"
-          >
-            保存设置
-          </button>
         </div>
-      )}
+      </div>
     </div>
   );
 };

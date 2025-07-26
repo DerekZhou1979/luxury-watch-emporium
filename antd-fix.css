@@ -966,4 +966,185 @@ body {
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
+/* 个人中心特定样式 */
+.user-center-gradient {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.user-center-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  transition: all 0.3s ease;
+}
+
+.user-center-card:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(59, 130, 246, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* 状态指示器动画 */
+.status-indicator {
+  position: relative;
+  overflow: hidden;
+}
+
+.status-indicator::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.status-indicator:hover::before {
+  left: 100%;
+}
+
+/* 个人中心表单样式 */
+.user-center-form input,
+.user-center-form textarea,
+.user-center-form select {
+  transition: all 0.3s ease;
+}
+
+.user-center-form input:focus,
+.user-center-form textarea:focus,
+.user-center-form select:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+}
+
+/* 推荐产品卡片悬停效果 */
+.product-recommendation-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.product-recommendation-card:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+.product-recommendation-card .product-image {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.product-recommendation-card:hover .product-image {
+  transform: scale(1.1);
+}
+
+/* 个人中心加载动画 */
+@keyframes user-center-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.user-center-loading {
+  animation: user-center-pulse 1.5s ease-in-out infinite;
+}
+
+/* 个人中心统计卡片 */
+.stats-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.stats-card .stats-icon {
+  transition: transform 0.3s ease;
+}
+
+.stats-card:hover .stats-icon {
+  transform: scale(1.1);
+}
+
+/* 地址管理卡片 */
+.address-card {
+  transition: all 0.3s ease;
+}
+
+.address-card:hover {
+  border-color: #10b981;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.1);
+  background: rgba(16, 185, 129, 0.01);
+}
+
+/* 订单状态徽章 */
+.order-status-badge {
+  position: relative;
+  overflow: hidden;
+}
+
+.order-status-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: currentColor;
+  opacity: 0.3;
+}
+
+/* 定制详情展开动画 */
+.customization-details {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .user-center-card {
+    margin-bottom: 1rem;
+  }
+  
+  .stats-card {
+    margin-bottom: 0.75rem;
+  }
+  
+  .user-center-form {
+    padding: 1rem;
+  }
+}
+
+/* 个人中心深色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .user-center-gradient {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  }
+  
+  .user-center-card {
+    background: rgba(31, 41, 55, 0.7);
+    border-color: rgba(75, 85, 99, 0.5);
+  }
+  
+  .stats-card {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    border-color: rgba(75, 85, 99, 0.5);
+  }
+}
+
  

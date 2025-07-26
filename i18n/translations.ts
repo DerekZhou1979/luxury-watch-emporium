@@ -117,6 +117,171 @@ export interface Translations {
     notifications: string;
   };
 
+  // 个人中心
+  userCenter: {
+    title: string;
+    welcome: string;
+    overview: string;
+    orders: string;
+    settings: string;
+    recommendations: string;
+    vipMember: string;
+    totalOrders: string;
+    totalSpent: string;
+    memberSince: string;
+    points: string;
+    
+    // 订单相关
+    orderManagement: string;
+    myOrders: string;
+    orderNumber: string;
+    orderDate: string;
+    paymentDate: string;
+    orderStatus: string;
+    orderTotal: string;
+    orderItems: string;
+    viewDetails: string;
+    payNow: string;
+    buyAgain: string;
+    refresh: string;
+    
+    // 订单状态
+    allOrders: string;
+    pendingPayment: string;
+    paid: string;
+    processing: string;
+    shipped: string;
+    delivered: string;
+    cancelled: string;
+    
+    // 排序选项
+    sortByDate: string;
+    sortByAmount: string;
+    
+    // 定制产品信息
+    customizedProduct: string;
+    customizationDetails: string;
+    basePrice: string;
+    customizationFee: string;
+    finalPrice: string;
+    customOptions: string;
+    
+    // 设置相关
+    profileSettings: string;
+    personalInfo: string;
+    addressManagement: string;
+    passwordChange: string;
+    preferences: string;
+    defaultAddress: string;
+    addNewAddress: string;
+    editAddress: string;
+    deleteAddress: string;
+    setAsDefault: string;
+    
+    // 通知设置
+    emailNotifications: string;
+    smsNotifications: string;
+    promotionalEmails: string;
+    orderUpdates: string;
+    newsletter: string;
+    
+    // 推荐产品
+    recommendedForYou: string;
+    basedOnHistory: string;
+    newArrivals: string;
+    trending: string;
+    addToCustomization: string;
+  };
+
+  // 个人定制
+  customization: {
+    title: string;
+    zone: string;
+    steps: string;
+    currentStep: string;
+    stepOf: string;
+    status: string;
+    selected: string;
+    totalPrice: string;
+    
+    // 定制步骤
+    caseTitle: string;
+    caseDescription: string;
+    dialTitle: string;
+    dialDescription: string;
+    handsTitle: string;
+    handsDescription: string;
+    secondHandTitle: string;
+    secondHandDescription: string;
+    strapTitle: string;
+    strapDescription: string;
+    movementTitle: string;
+    movementDescription: string;
+    
+    // 操作
+    previous: string;
+    next: string;
+    addToCart: string;
+    confirmCustomization: string;
+    backToProduct: string;
+    
+    // 确认弹窗
+    confirmTitle: string;
+    confirmDescription: string;
+    configurationSummary: string;
+    pricingBreakdown: string;
+    confirm: string;
+    
+    // 验证消息
+    configurationError: string;
+    attention: string;
+    selectOption: string;
+    
+    // 状态消息
+    statusNormal: string;
+    stepProgress: string;
+    optionsSelected: string;
+    
+    // 材质和选项
+    material: string;
+    color: string;
+    style: string;
+    type: string;
+    finish: string;
+    texture: string;
+    
+    // 价格相关
+    free: string;
+    priceModifier: string;
+    additionalCost: string;
+    
+    // 新增的翻译
+    required: string;
+    optionNotFound: string;
+    customWatchAddedToCart: string;
+    customWatchSuccessfullyAddedToCart: string;
+    confirmCustomWatch: string;
+    pleaseReviewConfig: string;
+    customVersion: string;
+    customConfigList: string;
+    priceBreakdown: string;
+    basePrice: string;
+    customizationFee: string;
+    total: string;
+    tip: string;
+    customWatchProductionTime: string;
+    returnToModify: string;
+    confirmAndAddToCart: string;
+    customizationNormal: string;
+    step: string;
+    selectedOptions: string;
+    configError: string;
+    note: string;
+    previousStep: string;
+    estimatedCustomizationFee: string;
+    nextStep: string;
+  };
+
   // Footer 底部信息
   footer: {
     company: string;
@@ -246,6 +411,169 @@ export const zhTranslations: Translations = {
     notifications: '通知设置',
   },
 
+  userCenter: {
+    title: '个人中心',
+    welcome: '欢迎回来，{name}！管理您的订单、设置和发现精选推荐。',
+    overview: '概览',
+    orders: '我的订单',
+    settings: '账户设置',
+    recommendations: '精选推荐',
+    vipMember: 'VIP 会员',
+    totalOrders: '总订单数',
+    totalSpent: '总消费',
+    memberSince: '会员加入时间',
+    points: '积分',
+    
+    // 订单相关
+    orderManagement: '订单管理',
+    myOrders: '我的订单',
+    orderNumber: '订单编号',
+    orderDate: '下单时间',
+    paymentDate: '支付时间',
+    orderStatus: '订单状态',
+    orderTotal: '订单总额',
+    orderItems: '商品数量',
+    viewDetails: '查看详情',
+    payNow: '立即支付',
+    buyAgain: '再次购买',
+    refresh: '刷新',
+    
+    // 订单状态
+    allOrders: '全部订单',
+    pendingPayment: '待支付',
+    paid: '已支付',
+    processing: '处理中',
+    shipped: '已发货',
+    delivered: '已送达',
+    cancelled: '已取消',
+    
+    // 排序选项
+    sortByDate: '按时间排序',
+    sortByAmount: '按金额排序',
+    
+    // 定制产品信息
+    customizedProduct: '定制产品',
+    customizationDetails: '定制详情',
+    basePrice: '基础价格',
+    customizationFee: '定制费用',
+    finalPrice: '最终价格',
+    customOptions: '定制选项',
+    
+    // 设置相关
+    profileSettings: '个人资料',
+    personalInfo: '个人信息',
+    addressManagement: '地址管理',
+    passwordChange: '密码修改',
+    preferences: '偏好设置',
+    defaultAddress: '默认地址',
+    addNewAddress: '添加新地址',
+    editAddress: '编辑地址',
+    deleteAddress: '删除地址',
+    setAsDefault: '设为默认',
+    
+    // 通知设置
+    emailNotifications: '邮件通知',
+    smsNotifications: '短信通知',
+    promotionalEmails: '促销邮件',
+    orderUpdates: '订单更新',
+    newsletter: '新闻通讯',
+    
+    // 推荐产品
+    recommendedForYou: '为您推荐',
+    basedOnHistory: '基于浏览历史',
+    newArrivals: '新品上架',
+    trending: '热门定制',
+    addToCustomization: '开始定制',
+  },
+
+  customization: {
+    title: '个人定制',
+    zone: '定制区域',
+    steps: '定制步骤',
+    currentStep: '当前步骤',
+    stepOf: '共 {totalSteps} 步',
+    status: '定制状态',
+    selected: '已选择',
+    totalPrice: '总价',
+    
+    // 定制步骤
+    caseTitle: '表壳定制',
+    caseDescription: '选择您的表壳材质、颜色和风格。',
+    dialTitle: '表盘定制',
+    dialDescription: '选择您的表盘材质、颜色和风格。',
+    handsTitle: '指针定制',
+    handsDescription: '选择您的指针材质、颜色和风格。',
+    secondHandTitle: '秒针定制',
+    secondHandDescription: '选择您的秒针材质和颜色。',
+    strapTitle: '表带定制',
+    strapDescription: '选择您的表带材质、颜色和风格。',
+    movementTitle: '机芯定制',
+    movementDescription: '选择您的机芯类型和功能。',
+    
+    // 操作
+    previous: '上一步',
+    next: '下一步',
+    addToCart: '加入定制清单',
+    confirmCustomization: '确认定制',
+    backToProduct: '返回产品详情',
+    
+    // 确认弹窗
+    confirmTitle: '确认定制',
+    confirmDescription: '您确定要完成此定制吗？此操作不可逆。',
+    configurationSummary: '定制配置概要',
+    pricingBreakdown: '价格明细',
+    confirm: '确认',
+    
+    // 验证消息
+    configurationError: '定制配置错误',
+    attention: '注意',
+    selectOption: '请选择一个选项',
+    
+    // 状态消息
+    statusNormal: '正常',
+    stepProgress: '步骤进度',
+    optionsSelected: '已选择 {count} 个选项',
+    
+    // 材质和选项
+    material: '材质',
+    color: '颜色',
+    style: '风格',
+    type: '类型',
+    finish: '表面处理',
+    texture: '纹理',
+    
+    // 价格相关
+    free: '免费',
+    priceModifier: '价格调整',
+    additionalCost: '额外费用',
+    
+    // 新增的翻译
+    required: '必选',
+    optionNotFound: '配置选项不存在',
+    customWatchAddedToCart: '定制手表已添加到购物车',
+    customWatchSuccessfullyAddedToCart: '您的个性化手表已成功添加到购物车！',
+    confirmCustomWatch: '确认您的定制手表',
+    pleaseReviewConfig: '请仔细核对以下配置信息',
+    customVersion: '定制版',
+    customConfigList: '定制配置清单',
+    priceBreakdown: '价格明细',
+    basePrice: '基础价格',
+    customizationFee: '定制费用',
+    total: '总计',
+    tip: '温馨提示',
+    customWatchProductionTime: '定制手表制作周期约15-20个工作日，我们会及时为您更新制作进度。',
+    returnToModify: '返回修改',
+    confirmAndAddToCart: '确认并加入购物车',
+    customizationNormal: '✅ 定制状态正常',
+    step: '步骤',
+    selectedOptions: '已选择',
+    configError: '配置错误',
+    note: '注意事项',
+    previousStep: '上一步',
+    estimatedCustomizationFee: '预计定制费用',
+    nextStep: '下一步'
+  },
+
   footer: {
     company: '公司',
     support: '支持',
@@ -372,6 +700,169 @@ export const enTranslations: Translations = {
     addresses: 'Addresses',
     paymentMethods: 'Payment Methods',
     notifications: 'Notifications',
+  },
+
+  userCenter: {
+    title: 'User Center',
+    welcome: 'Welcome back, {name}! Manage your orders, settings, and discover curated recommendations.',
+    overview: 'Overview',
+    orders: 'My Orders',
+    settings: 'Account Settings',
+    recommendations: 'Recommendations',
+    vipMember: 'VIP Member',
+    totalOrders: 'Total Orders',
+    totalSpent: 'Total Spent',
+    memberSince: 'Member Since',
+    points: 'Points',
+    
+    // 订单相关
+    orderManagement: 'Order Management',
+    myOrders: 'My Orders',
+    orderNumber: 'Order Number',
+    orderDate: 'Order Date',
+    paymentDate: 'Payment Date',
+    orderStatus: 'Order Status',
+    orderTotal: 'Order Total',
+    orderItems: 'Items',
+    viewDetails: 'View Details',
+    payNow: 'Pay Now',
+    buyAgain: 'Buy Again',
+    refresh: 'Refresh',
+    
+    // 订单状态
+    allOrders: 'All Orders',
+    pendingPayment: 'Pending Payment',
+    paid: 'Paid',
+    processing: 'Processing',
+    shipped: 'Shipped',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled',
+    
+    // 排序选项
+    sortByDate: 'Sort by Date',
+    sortByAmount: 'Sort by Amount',
+    
+    // 定制产品信息
+    customizedProduct: 'Customized Product',
+    customizationDetails: 'Customization Details',
+    basePrice: 'Base Price',
+    customizationFee: 'Customization Fee',
+    finalPrice: 'Final Price',
+    customOptions: 'Custom Options',
+    
+    // 设置相关
+    profileSettings: 'Profile Settings',
+    personalInfo: 'Personal Information',
+    addressManagement: 'Address Management',
+    passwordChange: 'Change Password',
+    preferences: 'Preferences',
+    defaultAddress: 'Default Address',
+    addNewAddress: 'Add New Address',
+    editAddress: 'Edit Address',
+    deleteAddress: 'Delete Address',
+    setAsDefault: 'Set as Default',
+    
+    // 通知设置
+    emailNotifications: 'Email Notifications',
+    smsNotifications: 'SMS Notifications',
+    promotionalEmails: 'Promotional Emails',
+    orderUpdates: 'Order Updates',
+    newsletter: 'Newsletter',
+    
+    // 推荐产品
+    recommendedForYou: 'Recommended for You',
+    basedOnHistory: 'Based on Browsing History',
+    newArrivals: 'New Arrivals',
+    trending: 'Trending Customizations',
+    addToCustomization: 'Start Customization',
+  },
+
+  customization: {
+    title: 'Personal Customization',
+    zone: 'Customization Zone',
+    steps: 'Customization Steps',
+    currentStep: 'Current Step',
+    stepOf: 'Step {currentStep} of {totalSteps}',
+    status: 'Customization Status',
+    selected: 'Selected',
+    totalPrice: 'Total Price',
+    
+    // 定制步骤
+    caseTitle: 'Case Customization',
+    caseDescription: 'Choose your case material, color, and style.',
+    dialTitle: 'Dial Customization',
+    dialDescription: 'Choose your dial material, color, and style.',
+    handsTitle: 'Hands Customization',
+    handsDescription: 'Choose your hands material, color, and style.',
+    secondHandTitle: 'Second Hand Customization',
+    secondHandDescription: 'Choose your second hand material and color.',
+    strapTitle: 'Strap Customization',
+    strapDescription: 'Choose your strap material, color, and style.',
+    movementTitle: 'Movement Customization',
+    movementDescription: 'Choose your movement type and features.',
+    
+    // 操作
+    previous: 'Previous Step',
+    next: 'Next Step',
+    addToCart: 'Add to Bespoke List',
+    confirmCustomization: 'Confirm Customization',
+    backToProduct: 'Back to Product Details',
+    
+    // 确认弹窗
+    confirmTitle: 'Confirm Customization',
+    confirmDescription: 'Are you sure you want to complete this customization? This action is irreversible.',
+    configurationSummary: 'Customization Configuration Summary',
+    pricingBreakdown: 'Pricing Breakdown',
+    confirm: 'Confirm',
+    
+    // 验证消息
+    configurationError: 'Customization Configuration Error',
+    attention: 'Attention',
+    selectOption: 'Please select an option',
+    
+    // 状态消息
+    statusNormal: 'Normal',
+    stepProgress: 'Step Progress',
+    optionsSelected: 'Options Selected: {count}',
+    
+    // 材质和选项
+    material: 'Material',
+    color: 'Color',
+    style: 'Style',
+    type: 'Type',
+    finish: 'Finish',
+    texture: 'Texture',
+    
+    // 价格相关
+    free: 'Free',
+    priceModifier: 'Price Modifier',
+    additionalCost: 'Additional Cost',
+    
+    // 新增的翻译
+    required: 'Required',
+    optionNotFound: 'Configuration option not found',
+    customWatchAddedToCart: 'Custom watch added to cart',
+    customWatchSuccessfullyAddedToCart: 'Your personalized watch has been successfully added to your cart!',
+    confirmCustomWatch: 'Confirm your custom watch',
+    pleaseReviewConfig: 'Please review the following configuration information',
+    customVersion: 'Custom Version',
+    customConfigList: 'Custom Configuration List',
+    priceBreakdown: 'Pricing Breakdown',
+    basePrice: 'Base Price',
+    customizationFee: 'Customization Fee',
+    total: 'Total',
+    tip: 'Tip',
+    customWatchProductionTime: 'Custom watch production takes approximately 15-20 working days, and we will keep you updated on the production progress.',
+    returnToModify: 'Return to Modify',
+    confirmAndAddToCart: 'Confirm and Add to Cart',
+    customizationNormal: '✅ Customization Status Normal',
+    step: 'Step',
+    selectedOptions: 'Selected Options',
+    configError: 'Configuration Error',
+    note: 'Note',
+    previousStep: 'Previous Step',
+    estimatedCustomizationFee: 'Estimated Customization Fee',
+    nextStep: 'Next Step'
   },
 
   footer: {
