@@ -7,7 +7,7 @@ import enUS from 'antd/locale/en_US';
 import App from './SeagullWatchApp';
 import { CartProvider } from './hooks/use-shopping-cart';
 import { LanguageProvider, useLanguage } from './hooks/use-language';
-import { antdTheme } from './theme/antd-theme';
+import antdTheme from './theme/antd-theme';
 
 // 确保 Ant Design 样式在自定义样式之后加载
 import './antd-fix.css';
