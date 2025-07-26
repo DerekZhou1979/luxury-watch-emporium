@@ -4,6 +4,7 @@
  */
 
 import { DatabaseManager } from '../database/database-manager';
+import { CustomizationService } from './customization-service';
 import { 
   PaymentMethod, 
   Order, 
@@ -110,15 +111,33 @@ export class PaymentServiceSimple {
           product_snapshot: productSnapshot  // 保存完整商品快照，包含定制信息
         } as any;
         
-        await db.getEngine().insert('order_items', orderItemData);
+        const createdOrderItem = await db.getEngine().insert('order_items', orderItemData);
         
-        // 如果是定制商品，记录定制信息
+        // 如果是定制商品，保存详细的定制信息到专用表
         if (item.isCustomized && item.customization) {
-          console.log('📝 保存定制商品信息:', {
+          console.log('📝 保存定制商品详细信息:', {
+            orderItemId: createdOrderItem.id,
             productId: item.productId,
-            customizationId: item.customization.id,
-            finalPrice: item.customization.finalPrice
+            customizationConfig: item.customization.configurations
           });
+          
+          try {
+            // 从数据库获取定制配置信息
+            const customConfig = await CustomizationService.getProductCustomizationConfig(item.productId);
+            
+            // 保存每个定制选项的详细信息
+            await CustomizationService.saveOrderCustomizationDetails(
+              createdOrderItem.id,
+              item.customization.configurations,
+              customConfig.categories,
+              customConfig.options
+            );
+            
+            console.log('✅ 定制详情保存成功');
+          } catch (error) {
+            console.error('❌ 保存定制详情失败:', error);
+            // 继续执行，不中断订单创建流程
+          }
         }
       }
 
@@ -252,11 +271,57 @@ export class PaymentServiceSimple {
     });
 
     // 转换订单项目格式，正确解析定制信息
-    const items: OrderItem[] = orderItems.map(item => {
-      // 从product_snapshot中提取完整信息，包括定制数据
+    const items: OrderItem[] = [];
+    
+    for (const item of orderItems) {
+      // 从product_snapshot中提取基础信息
       const snapshot = item.product_snapshot || {};
       
-      return {
+      let customizationDetails = snapshot.customization;
+      
+      // 如果是定制商品，从专用表获取详细定制信息
+      if (snapshot.isCustomized) {
+        try {
+          const detailsFromDb = await CustomizationService.getOrderCustomizationDetails(item.id);
+          if (detailsFromDb.length > 0) {
+            // 重新构建定制配置信息
+            const configurations: Record<string, string> = {};
+            const priceBreakdown: any[] = [{
+              type: 'base',
+              name: '基础价格',
+              price: snapshot.customization?.basePrice || item.price
+            }];
+            
+            let totalAdditionalPrice = 0;
+            
+            detailsFromDb.forEach(detail => {
+              configurations[detail.category_id] = detail.option_id;
+              if (detail.option_price > 0) {
+                totalAdditionalPrice += detail.option_price;
+                priceBreakdown.push({
+                  type: 'option',
+                  name: detail.option_name,
+                  price: detail.option_price
+                });
+              }
+            });
+            
+            customizationDetails = {
+              id: snapshot.customization?.id || `custom_${item.id}`,
+              configurations,
+              priceBreakdown,
+              finalPrice: item.price,
+              basePrice: item.price - totalAdditionalPrice,
+              additionalPrice: totalAdditionalPrice
+            };
+          }
+        } catch (error) {
+          console.error('❌ 获取定制详情失败:', error);
+          // 使用snapshot中的数据作为fallback
+        }
+      }
+      
+      items.push({
         productId: item.product_id,
         name: item.product_name,
         imageUrl: item.product_image,
@@ -264,16 +329,17 @@ export class PaymentServiceSimple {
         price: item.price,
         quantity: item.quantity,
         isCustomized: snapshot.isCustomized || false,
-        customization: snapshot.customization || undefined
-      };
-    });
+        customization: customizationDetails
+      });
+    }
 
     console.log('📦 订单项目解析结果:', {
       orderId: dbOrder.order_number,
       items: items.map(item => ({
         name: item.name,
         isCustomized: item.isCustomized,
-        hasCustomization: !!item.customization
+        hasCustomization: !!item.customization,
+        customizationKeys: item.customization ? Object.keys(item.customization.configurations || {}) : []
       }))
     });
 

@@ -1,21 +1,33 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './SeagullWatchApp';
-import { CartProvider } from './hooks/use-shopping-cart';
+import SeagullWatchApp from './SeagullWatchApp';
+import { DatabaseManager } from './database/database-manager';
+import { CustomizationService } from './services/customization-service';
+import './public/index.css';
 
-// 确保 Ant Design 样式在自定义样式之后加载
-import './antd-fix.css';
-
-const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
+// 初始化数据库和定制数据
+async function initializeApp() {
+  try {
+    console.log('🚀 启动应用初始化...');
+    
+    // 初始化数据库
+    const db = DatabaseManager.getInstance();
+    await db.initialize();
+    
+    // 确保定制数据已初始化
+    await CustomizationService.initializeCustomizationData();
+    
+    console.log('✅ 应用初始化完成');
+  } catch (error) {
+    console.error('❌ 应用初始化失败:', error);
+  }
 }
 
-const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <CartProvider>
-      <App />
-    </CartProvider>
-  </React.StrictMode>
-);
+// 启动应用
+initializeApp().then(() => {
+  ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+      <SeagullWatchApp />
+    </React.StrictMode>,
+  );
+});

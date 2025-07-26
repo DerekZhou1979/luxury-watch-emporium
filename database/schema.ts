@@ -12,6 +12,10 @@ export interface DatabaseSchema {
   coupons: CouponRecord[];
   settings: SettingRecord[];
   logs: LogRecord[];
+  customization_categories: CustomizationCategoryRecord[];
+  customization_options: CustomizationOptionRecord[];
+  product_customization_configs: ProductCustomizationConfigRecord[];
+  order_customization_details: OrderCustomizationDetailRecord[];
 }
 
 // 用户表
@@ -310,5 +314,62 @@ export const DATABASE_INDEXES: DatabaseIndex[] = [
   { table: 'coupons', fields: ['code'], unique: true, name: 'idx_coupons_code' },
   { table: 'coupons', fields: ['status'], name: 'idx_coupons_status' },
 ];
+
+// 定制类别表
+export interface CustomizationCategoryRecord {
+  id: string;
+  name: string;
+  name_en: string;
+  description?: string;
+  description_en?: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// 定制选项表
+export interface CustomizationOptionRecord {
+  id: string;
+  category_id: string;
+  name: string;
+  name_en: string;
+  description?: string;
+  description_en?: string;
+  base_price: number;
+  sort_order: number;
+  is_active: boolean;
+  image_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// 产品定制配置表
+export interface ProductCustomizationConfigRecord {
+  id: string;
+  product_id: string;
+  category_id: string;
+  is_required: boolean;
+  default_option_id?: string;
+  price_modifier: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// 订单定制详情表
+export interface OrderCustomizationDetailRecord {
+  id: string;
+  order_item_id: string;
+  category_id: string;
+  category_name: string;
+  category_name_en: string;
+  option_id: string;
+  option_name: string;
+  option_name_en: string;
+  option_price: number;
+  price_modifier: number;
+  created_at: string;
+}
 
 export default DatabaseSchema; 

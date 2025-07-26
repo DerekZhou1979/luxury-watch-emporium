@@ -292,6 +292,83 @@ CREATE TABLE IF NOT EXISTS settings (
   INDEX idx_settings_public (is_public)
 );
 
+-- 定制选项类别表
+CREATE TABLE IF NOT EXISTS customization_categories (
+  id VARCHAR(50) PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  name_en VARCHAR(100) NOT NULL,
+  description TEXT,
+  description_en TEXT,
+  sort_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  
+  INDEX idx_customization_categories_active (is_active),
+  INDEX idx_customization_categories_sort (sort_order)
+);
+
+-- 定制选项表
+CREATE TABLE IF NOT EXISTS customization_options (
+  id VARCHAR(50) PRIMARY KEY,
+  category_id VARCHAR(50) NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  name_en VARCHAR(100) NOT NULL,
+  description TEXT,
+  description_en TEXT,
+  base_price DECIMAL(10,2) DEFAULT 0,
+  sort_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  image_url VARCHAR(500),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  
+  FOREIGN KEY (category_id) REFERENCES customization_categories(id) ON DELETE CASCADE,
+  INDEX idx_customization_options_category (category_id),
+  INDEX idx_customization_options_active (is_active),
+  INDEX idx_customization_options_sort (sort_order)
+);
+
+-- 产品定制配置表
+CREATE TABLE IF NOT EXISTS product_customization_configs (
+  id VARCHAR(50) PRIMARY KEY,
+  product_id VARCHAR(50) NOT NULL,
+  category_id VARCHAR(50) NOT NULL,
+  is_required BOOLEAN DEFAULT FALSE,
+  default_option_id VARCHAR(50),
+  price_modifier DECIMAL(10,2) DEFAULT 0,
+  sort_order INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  
+  FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+  FOREIGN KEY (category_id) REFERENCES customization_categories(id) ON DELETE CASCADE,
+  FOREIGN KEY (default_option_id) REFERENCES customization_options(id) ON DELETE SET NULL,
+  UNIQUE KEY unique_product_category (product_id, category_id),
+  INDEX idx_product_customization_configs_product (product_id),
+  INDEX idx_product_customization_configs_category (category_id)
+);
+
+-- 订单定制详情表
+CREATE TABLE IF NOT EXISTS order_customization_details (
+  id VARCHAR(50) PRIMARY KEY,
+  order_item_id VARCHAR(50) NOT NULL,
+  category_id VARCHAR(50) NOT NULL,
+  category_name VARCHAR(100) NOT NULL,
+  category_name_en VARCHAR(100) NOT NULL,
+  option_id VARCHAR(50) NOT NULL,
+  option_name VARCHAR(100) NOT NULL,
+  option_name_en VARCHAR(100) NOT NULL,
+  option_price DECIMAL(10,2) NOT NULL,
+  price_modifier DECIMAL(10,2) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  FOREIGN KEY (order_item_id) REFERENCES order_items(id) ON DELETE CASCADE,
+  INDEX idx_order_customization_details_item (order_item_id),
+  INDEX idx_order_customization_details_category (category_id),
+  INDEX idx_order_customization_details_option (option_id)
+);
+
 -- 操作日志表
 CREATE TABLE IF NOT EXISTS logs (
   id VARCHAR(50) PRIMARY KEY,

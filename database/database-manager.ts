@@ -5,6 +5,7 @@
 
 import { BrowserDatabaseEngine, QueryCondition, QueryOptions, BrowserDatabaseConfig } from './browser-database-engine';
 import { DatabaseSchema, UserRecord, ProductRecord, OrderRecord, CategoryRecord } from './schema';
+import { CustomizationService } from '../services/customization-service';
 
 /**
  * 数据库管理器类 - 单例模式
@@ -39,16 +40,24 @@ export class DatabaseManager {
     return DatabaseManager.instance;
   }
 
-  // 初始化数据库连接，加载基础数据
+  /**
+   * 初始化数据库（包括定制数据）
+   */
   async initialize(): Promise<void> {
     try {
-      console.log('🔄 正在连接数据库引擎...');
-      await this.engine.connect();
+      console.log('🔄 初始化数据库...');
       
-      console.log('📊 正在初始化基础数据...');
-      await this.initializeBaseData();
+             // 初始化基础数据库
+       console.log('🔄 正在连接数据库引擎...');
+       await this.engine.connect();
+       
+       console.log('📊 正在初始化基础数据...');
+       await this.initializeBaseData();
       
-      console.log('✅ 数据库初始化成功');
+      // 初始化定制数据
+      await CustomizationService.initializeCustomizationData();
+      
+      console.log('✅ 数据库初始化完成');
     } catch (error) {
       console.error('❌ 数据库初始化失败:', error);
       throw error;
