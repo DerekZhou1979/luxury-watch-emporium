@@ -37,7 +37,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // 从localStorage加载主题
   useEffect(() => {
-    const savedTheme = localStorage.getItem('seagull-watch-theme') as ThemeType;
+    const savedTheme = localStorage.getItem('chronolab-watch-theme') as ThemeType;
     if (savedTheme && THEMES[savedTheme]) {
       setThemeState(savedTheme);
     }
@@ -54,7 +54,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     
     // 保存到localStorage
-    localStorage.setItem('seagull-watch-theme', theme);
+    localStorage.setItem('chronolab-watch-theme', theme);
     
     // 为系统主题检测添加类
     document.body.className = `theme-${theme}`;

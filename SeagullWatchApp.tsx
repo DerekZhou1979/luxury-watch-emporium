@@ -1,6 +1,8 @@
-/**
- * 海鸥表电商平台主应用
- * 数据库初始化、路由管理、认证状态、错误处理、主题系统
+/*
+ * 汉时辰制ChronoLab电商平台主应用
+ * 
+ * 这是整个网站的主入口组件，负责路由配置、主题设置、以及全局状态管理。
+ * 整合了产品展示、购物车、用户认证、多语言等核心功能。
  */
 
 import React, { useState, useEffect, Suspense } from 'react';
@@ -114,7 +116,7 @@ const App: React.FC = () => {
                 <div className="h-2 w-2 bg-brand-primary rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
                 <div className="h-2 w-2 bg-brand-primary rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
               </div>
-              <h2 className="text-xl font-semibold text-brand-text mb-2">海鸥表官网</h2>
+              <h2 className="text-xl font-semibold text-brand-text mb-2">汉时辰制ChronoLab官网</h2>
               <p className="text-brand-text-secondary">正在为您加载精品时计...</p>
             </div>
           </div>
@@ -131,7 +133,7 @@ const App: React.FC = () => {
           <div className="text-center p-8">
             {/* 加载动画 */}
             <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-brand-primary border-t-transparent mb-6"></div>
-            <h2 className="text-2xl font-semibold text-brand-text mb-2">🕰️ 正在初始化海鸥表系统</h2>
+            <h2 className="text-2xl font-semibold text-brand-text mb-2">🕰️ 正在初始化汉时辰制ChronoLab系统</h2>
             <p className="text-brand-text-secondary">正在加载产品数据和用户信息...</p>
             <div className="mt-4 flex justify-center space-x-1">
               <div className="h-2 w-2 bg-brand-primary rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>

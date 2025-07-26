@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   Card, 
   Row, 
@@ -17,15 +17,17 @@ import {
   HeartOutlined,
   SettingOutlined
 } from '@ant-design/icons';
-import { Product } from '../seagull-watch-types';
+import { Product, CustomizationDetails } from '../seagull-watch-types';
 import { 
   CustomizableProduct, 
-  CustomizationConfiguration 
+  CustomizationConfiguration,
+  CustomizationCategory
 } from '../seagull-watch-customization-types';
 import { databaseProductService } from '../services/database-product-service';
 import LoadingSpinner from '../components/loading-indicator';
 import WatchCustomizer from '../components/watch-customizer';
 import { useCart } from '../hooks/use-shopping-cart';
+import { createCustomizableProduct } from '../components/customization-config';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -37,7 +39,8 @@ const ProductDetailPage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
 
   const [customizationConfig, setCustomizationConfig] = useState<CustomizationConfiguration | null>(null);
-  const { addItem } = useCart();
+  const { addItem, addCustomizedItem } = useCart();
+  const navigate = useNavigate();
 
   const fetchProductData = useCallback(async () => {
     if (!productId) {
@@ -70,185 +73,7 @@ const ProductDetailPage: React.FC = () => {
   // 判断产品是否支持定制化
   const isCustomizable = product && (product as any).isCustomizable;
 
-  // 创建模拟的定制化产品数据
-  const createCustomizableProduct = (product: Product): CustomizableProduct => {
-    return {
-      ...product,
-      basePrice: product.price,
-      isCustomizable: true,
-      customizationOptions: [
-        {
-          id: 'case_material',
-          name: 'case_material',
-          displayName: '表壳材质',
-          description: '选择您偏爱的表壳材质',
-          type: 'select',
-          required: true,
-          values: [
-            {
-              id: 'stainless_steel',
-              value: 'stainless_steel',
-              displayName: '不锈钢',
-              description: '经典不锈钢材质，耐用且优雅',
-              priceModifier: 0,
-              stockQuantity: 50,
-              isDefault: true,
-              isAvailable: true,
-              materialCode: 'SS316L'
-            },
-            {
-              id: 'titanium',
-              value: 'titanium',
-              displayName: '钛金属',
-              description: '轻量化钛金属，舒适佩戴',
-              priceModifier: 2000,
-              stockQuantity: 30,
-              isDefault: false,
-              isAvailable: true,
-              materialCode: 'TI6AL4V'
-            },
-            {
-              id: 'rose_gold',
-              value: 'rose_gold',
-              displayName: '玫瑰金',
-              description: '奢华玫瑰金材质，彰显品味',
-              priceModifier: 8000,
-              stockQuantity: 10,
-              isDefault: false,
-              isAvailable: true,
-              materialCode: 'RG18K'
-            }
-          ],
-          defaultValue: 'stainless_steel',
-          category: 'case' as any,
-          sortOrder: 1,
-          isActive: true,
-          priceModifier: 0
-        },
-        {
-          id: 'dial_color',
-          name: 'dial_color',
-          displayName: '表盘颜色',
-          description: '选择表盘颜色',
-          type: 'color',
-          required: true,
-          values: [
-            {
-              id: 'black',
-              value: 'black',
-              displayName: '黑色',
-              priceModifier: 0,
-              stockQuantity: 100,
-              isDefault: true,
-              isAvailable: true,
-              hexColor: '#000000'
-            },
-            {
-              id: 'white',
-              value: 'white',
-              displayName: '白色',
-              priceModifier: 0,
-              stockQuantity: 80,
-              isDefault: false,
-              isAvailable: true,
-              hexColor: '#FFFFFF'
-            },
-            {
-              id: 'blue',
-              value: 'blue',
-              displayName: '蓝色',
-              priceModifier: 500,
-              stockQuantity: 60,
-              isDefault: false,
-              isAvailable: true,
-              hexColor: '#1890FF'
-            },
-            {
-              id: 'green',
-              value: 'green',
-              displayName: '绿色',
-              priceModifier: 500,
-              stockQuantity: 40,
-              isDefault: false,
-              isAvailable: true,
-              hexColor: '#52C41A'
-            }
-          ],
-          defaultValue: 'black',
-          category: 'dial' as any,
-          sortOrder: 2,
-          isActive: true,
-          priceModifier: 0
-        },
-        {
-          id: 'strap_type',
-          name: 'strap_type',
-          displayName: '表带类型',
-          description: '选择表带材质和风格',
-          type: 'select',
-          required: true,
-          values: [
-            {
-              id: 'leather',
-              value: 'leather',
-              displayName: '皮革表带',
-              description: '意大利小牛皮，舒适透气',
-              priceModifier: 0,
-              stockQuantity: 100,
-              isDefault: true,
-              isAvailable: true
-            },
-            {
-              id: 'metal',
-              value: 'metal',
-              displayName: '金属链带',
-              description: '不锈钢链带，坚固耐用',
-              priceModifier: 800,
-              stockQuantity: 80,
-              isDefault: false,
-              isAvailable: true
-            },
-            {
-              id: 'rubber',
-              value: 'rubber',
-              displayName: '橡胶表带',
-              description: '防水橡胶，运动首选',
-              priceModifier: 300,
-              stockQuantity: 60,
-              isDefault: false,
-              isAvailable: true
-            }
-          ],
-          defaultValue: 'leather',
-          category: 'strap' as any,
-          sortOrder: 3,
-          isActive: true,
-          priceModifier: 0
-        },
-        {
-          id: 'engraving',
-          name: 'engraving',
-          displayName: '个性化刻字',
-          description: '在表背刻上您的个性文字（最多20字符）',
-          type: 'text',
-          required: false,
-          maxLength: 20,
-          values: [],
-          category: 'engraving' as any,
-          sortOrder: 4,
-          isActive: true,
-          priceModifier: 500
-        }
-      ],
-      previewImages: {},
-      manufacturingTime: 15,
-      minCustomizationPrice: product.price,
-      maxCustomizationPrice: product.price + 10000,
-      customizationGuide: '我们的定制服务允许您个性化每一个细节，打造独一无二的海鸥表。',
-      sizingGuide: '表径40mm，适合腕围15-20cm佩戴。',
-      careInstructions: '避免接触强磁场，定期保养以确保最佳性能。'
-    };
-  };
+
 
   const handleAddToCart = () => {
     if (product) {
@@ -264,14 +89,14 @@ const ProductDetailPage: React.FC = () => {
     setCustomizationConfig(config);
   };
 
-  const handleCustomAddToCart = (config: CustomizationConfiguration) => {
+  const handleCustomAddToCart = (customization: CustomizationDetails) => {
     if (product) {
-      // 这里应该创建一个包含定制配置的购物车项
-      addItem(product);
+      addCustomizedItem(product, customization);
       notification.success({
         message: '定制手表已添加到购物车',
         description: '您的个性化手表已成功添加到购物车！',
       });
+      navigate('/products');
     }
   };
 
@@ -560,49 +385,41 @@ const ProductDetailPage: React.FC = () => {
       </Row>
 
       {/* 第三行：实时预览 + 个性化定制区域 */}
-      <Row gutter={[20, 20]} className="mb-6">
+      <Row gutter={[16, 16]} className="mb-4">
         {/* 左侧：实时预览 (2/5) */}
         <Col xs={24} lg={10}>
           <Card 
             className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50" 
-            style={{ minHeight: '500px' }}
-            bodyStyle={{ padding: '16px' }}
+            style={{ minHeight: '450px' }}
+            bodyStyle={{ padding: '12px' }}
             title={
               <div className="flex items-center space-x-2">
-                <span className="text-base">👁️ 定制产品 - 实时预览</span>
+                <span className="text-sm">👁️ 定制产品 - 实时预览</span>
                 <Text type="secondary" className="text-xs">所见即所得</Text>
               </div>
             }
           >
-            <div className="bg-white rounded-lg p-4">
-              <div className="aspect-square w-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center mb-4">
+            <div className="bg-white rounded-lg p-3">
+              <div className="aspect-square w-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center mb-3">
                 <div className="text-center">
-                  <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
+                  <div className="w-28 h-28 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto mb-3 flex items-center justify-center shadow-lg">
                     <img 
                       src={product.imageUrl} 
                       alt="预览" 
-                      className="w-28 h-28 object-cover rounded-full"
+                      className="w-24 h-24 object-cover rounded-full"
                     />
                   </div>
-                  <Title level={5} className="text-gray-700 mb-2">{product.name}</Title>
+                  <Title level={5} className="text-gray-700 mb-1">{product.name}</Title>
                   <Text type="secondary" className="text-sm">定制预览模式</Text>
                 </div>
               </div>
 
               {/* 预览信息 */}
-              <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <Text type="secondary" className="block">当前配置</Text>
                     <Text strong>标准版本</Text>
-                  </div>
-                  <div>
-                    <Text type="secondary" className="block">预计价格</Text>
-                    <Text strong className="text-blue-600">¥{product.price.toLocaleString()}</Text>
-                  </div>
-                  <div>
-                    <Text type="secondary" className="block">制作周期</Text>
-                    <Text strong>15-30天</Text>
                   </div>
                   <div>
                     <Text type="secondary" className="block">定制状态</Text>
@@ -616,6 +433,7 @@ const ProductDetailPage: React.FC = () => {
                 <Button 
                   type="dashed" 
                   block 
+                  size="small"
                   icon={<span>🔍</span>}
                   className="border-blue-300 text-blue-600 hover:border-blue-500"
                 >
@@ -624,6 +442,7 @@ const ProductDetailPage: React.FC = () => {
                 <Button 
                   type="dashed" 
                   block 
+                  size="small"
                   icon={<span>📱</span>}
                   className="border-green-300 text-green-600 hover:border-green-500"
                 >
@@ -638,16 +457,16 @@ const ProductDetailPage: React.FC = () => {
         <Col xs={24} lg={14}>
           <Card 
             className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50" 
-            style={{ minHeight: '500px' }}
-            bodyStyle={{ padding: '16px' }}
+            style={{ minHeight: '450px' }}
+            bodyStyle={{ padding: '12px' }}
             title={
               <div className="flex items-center">
-                <span className="text-lg">🎨 个人定制专区</span>
-                <Badge count="NEW" className="ml-3" />
+                <span className="text-base">🎨 个人定制专区</span>
+                <Badge count="NEW" className="ml-2" />
               </div>
             }
           >
-            <div className="bg-white rounded-lg p-4">
+            <div className="bg-white rounded-lg p-3">
               <WatchCustomizer
                 product={createCustomizableProduct(product)}
                 onConfigurationChange={handleCustomizationChange}

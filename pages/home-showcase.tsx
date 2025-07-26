@@ -215,7 +215,7 @@ const HomePage: React.FC = () => {
               >
                 <Image
                   src="./images/seagull_team_main.jpg" 
-                  alt="海鸥表制表工艺" 
+                  alt="汉时辰制制表工艺" 
                   style={{ 
                     width: '100%', 
                     height: '320px', 

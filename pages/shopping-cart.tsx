@@ -142,7 +142,7 @@ const ShoppingCartPage: React.FC = () => {
                     {/* 产品信息 */}
                     <Col xs={24} sm={18} md={12}>
                       <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                        <Link to={`/products/${item.id}`}>
+                        <Link to={`/products/${item.id.split('_custom_')[0] || item.id}`}>
                           <Title 
                             level={5} 
                             style={{ 
@@ -154,6 +154,11 @@ const ShoppingCartPage: React.FC = () => {
                             className="hover:text-blue-600"
                           >
                             {item.name}
+                            {item.isCustomized && (
+                              <Tag color="orange" style={{ marginLeft: '8px' }}>
+                                🎨 定制版
+                              </Tag>
+                            )}
                           </Title>
                         </Link>
                         
@@ -164,6 +169,107 @@ const ShoppingCartPage: React.FC = () => {
                         <Tag color="blue" style={{ width: 'fit-content' }}>
                           {item.category}
                         </Tag>
+
+                        {/* 定制配置详情 */}
+                        {item.isCustomized && item.customization && (
+                          <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                            <Text strong style={{ fontSize: '13px', color: '#374151', display: 'block', marginBottom: '8px' }}>
+                              📋 定制配置
+                            </Text>
+                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                              {Object.entries(item.customization.configurations).map(([key, value]) => {
+                                // 中文映射
+                                const configNameMap: Record<string, string> = {
+                                  'case_material': '表壳材质',
+                                  'dial_style': '表盘样式',
+                                  'hour_minute_hands': '时分针样式',
+                                  'second_hand': '秒针样式',
+                                  'strap_type': '表带类型',
+                                  'movement_type': '机芯类型',
+                                  // 兼容旧版本
+                                  'dial_color': '表盘颜色',
+                                  'strap_material': '表带材质',
+                                  'engraving_text': '个性刻字'
+                                };
+                                
+                                const valueMap: Record<string, string> = {
+                                  // 表壳材质
+                                  'stainless_steel': '不锈钢',
+                                  'titanium': '钛合金',
+                                  'rose_gold': '玫瑰金',
+                                  'ceramic': '陶瓷',
+                                  // 表盘样式
+                                  'white_sunburst': '白色太阳纹',
+                                  'black_glossy': '黑色光面',
+                                  'blue_gradient': '深海蓝渐变',
+                                  'silver_textured': '银色麦粒纹',
+                                  // 时分针样式
+                                  'classic_sword': '经典剑形针',
+                                  'dauphine_hands': '太子妃针',
+                                  'arrow_hands': '箭头式指针',
+                                  'baton_hands': '棒形指针',
+                                  // 秒针样式
+                                  'red_thin': '红色细针',
+                                  'blue_counterweight': '蓝色配重针',
+                                  'orange_racing': '橙色赛车针',
+                                  'white_lume': '白色夜光针',
+                                  // 表带类型
+                                  'leather_brown': '棕色真皮',
+                                  'steel_bracelet': '钢制表链',
+                                  'rubber_black': '黑色硅胶',
+                                  'nato_strap': 'NATO尼龙',
+                                  'mesh_steel': '钢网表带',
+                                  // 机芯类型
+                                  'automatic_basic': '基础自动机芯',
+                                  'automatic_premium': '高级自动机芯',
+                                  'chronograph': '计时机芯',
+                                  'gmt': 'GMT双时区',
+                                  // 兼容旧版本
+                                  'white': '白色',
+                                  'black': '黑色',
+                                  'blue': '深蓝',
+                                  'leather': '真皮表带',
+                                  'rubber': '硅胶表带'
+                                };
+                                
+                                const displayName = configNameMap[key] || key.replace('_', ' ');
+                                const displayValue = valueMap[value] || value;
+                                
+                                if (!value) return null;
+                                
+                                return (
+                                  <div key={key} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                                    <Text type="secondary">{displayName}:</Text>
+                                    <Text style={{ color: '#374151', fontWeight: '500' }}>{displayValue}</Text>
+                                  </div>
+                                );
+                              })}
+                            </Space>
+                            
+                            {/* 价格明细 */}
+                            <Divider style={{ margin: '8px 0' }} />
+                            <Text strong style={{ fontSize: '12px', color: '#374151', display: 'block', marginBottom: '6px' }}>
+                              💰 价格明细
+                            </Text>
+                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                              {item.customization.priceBreakdown.map((breakdown, index) => (
+                                <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                                  <Text type="secondary">{breakdown.name}:</Text>
+                                  <Text style={{ 
+                                    color: breakdown.type === 'base' ? '#374151' : '#059669',
+                                    fontWeight: breakdown.type === 'base' ? 'normal' : '500'
+                                  }}>
+                                    {breakdown.type === 'base' ? '' : '+'}¥{breakdown.price.toLocaleString()}
+                                  </Text>
+                                </div>
+                              ))}
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginTop: '4px', paddingTop: '4px', borderTop: '1px solid #e5e7eb' }}>
+                                <Text strong style={{ color: '#374151' }}>定制总价:</Text>
+                                <Text strong style={{ color: '#3b82f6' }}>¥{item.customization.finalPrice.toLocaleString()}</Text>
+                              </div>
+                            </Space>
+                          </div>
+                        )}
                       </Space>
                     </Col>
 

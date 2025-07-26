@@ -1,18 +1,20 @@
 {
-  "name": "luxury-watch-emporium",
-  "displayName": "Luxury Watch Emporium",
-  "description": "An elegant e-commerce web application showcasing a fictional luxury watch brand, ChronoCraft. Users can browse products, view details, manage a shopping cart, and learn about the brand. Features AI-generated stylistic insights for products.",
+  "name": "chronolab-watch-emporium",
+  "displayName": "汉时辰制 ChronoLab",
+  "description": "汉时辰制ChronoLab - 中华时计精工，传承时间艺术。用户可以浏览产品、查看详情、个人定制、管理购物车等功能。",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "keywords": [
+    "chronolab",
+    "汉时辰制",
     "luxury-watches",
     "ecommerce",
+    "customization",
     "react",
     "typescript",
     "vite",
-    "ai-insights",
-    "chronocraft"
+    "chinese-timepiece"
   ],
   "author": {
     "name": "Derek Team"

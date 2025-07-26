@@ -22,9 +22,31 @@ export enum ProductCategory {
   MINIMALIST = "潮酷品线"   // 现代创意设计系列
 }
 
-// 购物车商品项接口（扩展Product，添加数量字段）
+// 定制配置详情接口
+export interface CustomizationDetails {
+  id: string;                     // 定制配置ID
+  productId: string;              // 原始产品ID
+  configurations: Record<string, string>;  // 定制选项配置
+  priceBreakdown: CustomizationPriceBreakdown[];  // 价格明细
+  basePrice: number;              // 基础价格
+  totalModifier: number;          // 总定制费用
+  finalPrice: number;             // 最终价格
+  createdAt: string;              // 创建时间
+}
+
+// 定制价格明细项
+export interface CustomizationPriceBreakdown {
+  category: string;               // 分类（如"表壳"、"表盘"等）
+  name: string;                   // 项目名称
+  price: number;                  // 价格
+  type: 'base' | 'option';        // 类型：基础价格或定制选项
+}
+
+// 购物车商品项接口（扩展Product，添加数量字段和定制信息）
 export interface CartItem extends Product {
-  quantity: number;         // 购买数量
+  quantity: number;               // 购买数量
+  customization?: CustomizationDetails;  // 定制配置（可选）
+  isCustomized: boolean;          // 是否为定制产品
 }
 
 // 用户评价接口
