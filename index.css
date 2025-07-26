@@ -1,3 +1,8 @@
+/* Tailwind CSS 指令 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* ========================================
    海鸥表官网样式表 - 多主题样式管理
    ======================================== */
@@ -6,24 +11,24 @@
    1. 主题变量定义 - 三种风格主题
    ======================================== */
 
-/* 默认主题：奢华经典风格 (Luxury Classic) */
+/* 默认主题：科技感淡色风格 (Tech Light) */
 :root {
   /* 主要品牌色彩 */
-  --brand-primary: #D4AF37;        /* 海鸥表经典金色 */
-  --brand-primary-dark: #B8860B;   /* 深金色 */
-  --brand-secondary: #A0A0A0;      /* 银色调 */
-  --brand-accent: #e5e1d4a4;       /* 金色点缀 */
+  --brand-primary: #2563eb;        /* 科技蓝 */
+  --brand-primary-dark: #1d4ed8;   /* 深科技蓝 */
+  --brand-secondary: #64748b;      /* 中性灰 */
+  --brand-accent: #3b82f6;         /* 蓝色点缀 */
   
   /* 背景色彩系统 */
-  --brand-bg: #1A1A1A;             /* 深色主背景 */
-  --brand-surface: #2C2C2C;        /* 卡片/组件背景 */
-  --brand-surface-light: #3A3A3A;  /* 更亮的表面色 */
-  --brand-surface-hover: #4A4A4A;  /* 悬停状态 */
+  --brand-bg: #f1f5f9;             /* 淡色主背景 */
+  --brand-surface: #ffffff;        /* 卡片/组件背景 */
+  --brand-surface-light: #f8fafc;  /* 更亮的表面色 */
+  --brand-surface-hover: #e2e8f0;  /* 悬停状态 */
   
   /* 文字色彩系统 */
-  --brand-text: #FFFFFF;            /* 主要文字颜色 */
-  --brand-text-secondary: #E0E0E0;  /* 次要文字颜色 */
-  --brand-text-muted: #B0B0B0;     /* 弱化文字颜色 */
+  --brand-text: #1e293b;            /* 主要文字颜色 */
+  --brand-text-secondary: #64748b;  /* 次要文字颜色 */
+  --brand-text-muted: #94a3b8;     /* 弱化文字颜色 */
   
   /* 状态色彩 */
   --success-color: #10B981;         
@@ -32,8 +37,8 @@
   --info-color: #3B82F6;            
   
   /* 边框和分割线 */
-  --border-color: #4A4A4A;          
-  --border-color-light: #6A6A6A;   
+  --border-color: #e2e8f0;          
+  --border-color-light: #cbd5e1;   
   
   /* 阴影系统 */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
