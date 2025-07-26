@@ -78,12 +78,14 @@ const CheckoutPage: React.FC = () => {
       // 创建订单
       const orderId = PaymentService.generateOrderId();
       const orderItems: OrderItem[] = cart.map(item => ({
-        productId: item.id,
+        productId: item.id.replace(/_custom_\d+$/, ''), // 移除定制商品的唯一ID后缀
         name: item.name,
         price: item.price,
         quantity: item.quantity,
         imageUrl: item.imageUrl,
-        sku: item.sku
+        sku: item.sku,
+        isCustomized: item.isCustomized || false,
+        customization: item.customization // 重要：传递定制配置信息
       }));
 
       const order: Order = {

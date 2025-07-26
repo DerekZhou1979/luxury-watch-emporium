@@ -144,12 +144,61 @@ const MyOrders: React.FC<MyOrdersProps> = ({ orders, onRefresh }) => {
         
         {/* 定制选项 */}
         <div className="grid md:grid-cols-2 gap-4 mb-4">
-          {Object.entries(customization.configurations).map(([category, value]) => (
-            <div key={category} className="flex justify-between items-center py-2 px-3 bg-white rounded-md border border-blue-100">
-              <span className="text-gray-600 text-sm capitalize">{category}:</span>
-              <span className="font-medium text-gray-800">{value}</span>
-            </div>
-          ))}
+          {Object.entries(customization.configurations).map(([category, value]) => {
+            // 定制选项中英文映射
+            const configNameMap: Record<string, string> = {
+              'case_material': t.userCenter.title === '个人中心' ? '表壳材质' : 'Case Material',
+              'dial_style': t.userCenter.title === '个人中心' ? '表盘样式' : 'Dial Style',
+              'hour_minute_hands': t.userCenter.title === '个人中心' ? '时分针样式' : 'Hour/Minute Hands',
+              'second_hand': t.userCenter.title === '个人中心' ? '秒针样式' : 'Second Hand',
+              'strap_type': t.userCenter.title === '个人中心' ? '表带类型' : 'Strap Type',
+              'movement_type': t.userCenter.title === '个人中心' ? '机芯类型' : 'Movement Type'
+            };
+            
+            const valueMap: Record<string, string> = {
+              // 表壳材质
+              'stainless_steel': t.userCenter.title === '个人中心' ? '不锈钢' : 'Stainless Steel',
+              'titanium': t.userCenter.title === '个人中心' ? '钛合金' : 'Titanium',
+              'rose_gold': t.userCenter.title === '个人中心' ? '玫瑰金' : 'Rose Gold',
+              'ceramic': t.userCenter.title === '个人中心' ? '陶瓷' : 'Ceramic',
+              // 表盘样式
+              'white_sunburst': t.userCenter.title === '个人中心' ? '白色太阳纹' : 'White Sunburst',
+              'black_glossy': t.userCenter.title === '个人中心' ? '黑色光面' : 'Black Glossy',
+              'blue_gradient': t.userCenter.title === '个人中心' ? '深海蓝渐变' : 'Blue Gradient',
+              'silver_textured': t.userCenter.title === '个人中心' ? '银色麦粒纹' : 'Silver Textured',
+              // 时分针样式
+              'classic_sword': t.userCenter.title === '个人中心' ? '经典剑形针' : 'Classic Sword',
+              'dauphine_hands': t.userCenter.title === '个人中心' ? '太子妃针' : 'Dauphine Hands',
+              'arrow_hands': t.userCenter.title === '个人中心' ? '箭头式指针' : 'Arrow Hands',
+              'baton_hands': t.userCenter.title === '个人中心' ? '棒形指针' : 'Baton Hands',
+              // 秒针样式
+              'red_thin': t.userCenter.title === '个人中心' ? '红色细针' : 'Red Thin',
+              'blue_counterweight': t.userCenter.title === '个人中心' ? '蓝色配重针' : 'Blue Counterweight',
+              'orange_racing': t.userCenter.title === '个人中心' ? '橙色赛车针' : 'Orange Racing',
+              'white_lume': t.userCenter.title === '个人中心' ? '白色夜光针' : 'White Lume',
+              // 表带类型
+              'leather_brown': t.userCenter.title === '个人中心' ? '棕色真皮' : 'Brown Leather',
+              'steel_bracelet': t.userCenter.title === '个人中心' ? '钢制表链' : 'Steel Bracelet',
+              'rubber_black': t.userCenter.title === '个人中心' ? '黑色硅胶' : 'Black Rubber',
+              'nato_strap': t.userCenter.title === '个人中心' ? 'NATO尼龙' : 'NATO Strap',
+              'mesh_steel': t.userCenter.title === '个人中心' ? '钢网表带' : 'Mesh Steel',
+              // 机芯类型
+              'automatic_basic': t.userCenter.title === '个人中心' ? '基础自动机芯' : 'Basic Automatic',
+              'automatic_premium': t.userCenter.title === '个人中心' ? '高级自动机芯' : 'Premium Automatic',
+              'chronograph': t.userCenter.title === '个人中心' ? '计时机芯' : 'Chronograph',
+              'gmt': t.userCenter.title === '个人中心' ? 'GMT双时区' : 'GMT Dual Time'
+            };
+            
+            const displayName = configNameMap[category] || category.replace('_', ' ');
+            const displayValue = valueMap[value] || value;
+            
+            return (
+              <div key={category} className="flex justify-between items-center py-2 px-3 bg-white rounded-md border border-blue-100">
+                <span className="text-gray-600 text-sm capitalize">{displayName}:</span>
+                <span className="font-medium text-gray-800">{displayValue}</span>
+              </div>
+            );
+          })}
         </div>
 
         {/* 价格明细 */}

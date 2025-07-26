@@ -28,6 +28,7 @@ import LoadingSpinner from '../components/loading-indicator';
 import WatchCustomizer from '../components/watch-customizer';
 import { useCart } from '../hooks/use-shopping-cart';
 import { createCustomizableProduct } from '../components/customization-config';
+import { useLanguage } from '../hooks/use-language';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -40,6 +41,7 @@ const ProductDetailPage: React.FC = () => {
 
   const [customizationConfig, setCustomizationConfig] = useState<CustomizationConfiguration | null>(null);
   const { addItem, addCustomizedItem } = useCart();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const fetchProductData = useCallback(async () => {
@@ -147,7 +149,9 @@ const ProductDetailPage: React.FC = () => {
               
               <div className="flex items-baseline space-x-2">
                 <Title level={3} className="text-blue-600 mb-0 font-light">¥{product.price.toLocaleString()}</Title>
-                <Text type="secondary" className="text-sm">起价（可定制）</Text>
+                <Text type="secondary" className="text-sm">
+                  {t.userCenter.title === '个人中心' ? '起价（可定制）' : 'Starting from (Customizable)'}
+                </Text>
               </div>
             </div>
             
@@ -160,7 +164,7 @@ const ProductDetailPage: React.FC = () => {
                 onClick={handleAddToCart}
                 className="h-12 text-base font-medium px-6"
               >
-                立即定制
+                {t.userCenter.title === '个人中心' ? '立即定制' : 'Start Customization'}
               </Button>
               <Button 
                 icon={<HeartOutlined />}
@@ -168,7 +172,7 @@ const ProductDetailPage: React.FC = () => {
                 type="text"
                 className="h-12"
               >
-                收藏
+                {t.userCenter.title === '个人中心' ? '收藏' : 'Favorite'}
               </Button>
               <Button 
                 icon={<ShareAltOutlined />}
@@ -176,7 +180,7 @@ const ProductDetailPage: React.FC = () => {
                 type="text"
                 className="h-12"
               >
-                分享
+                {t.userCenter.title === '个人中心' ? '分享' : 'Share'}
               </Button>
             </div>
           </div>
@@ -222,7 +226,7 @@ const ProductDetailPage: React.FC = () => {
           {/* 完整产品信息 */}
           <Card className="shadow-lg border-0 h-full" title={
             <div className="flex items-center space-x-2">
-              <span className="text-lg">📋 产品完整信息</span>
+              <span className="text-lg">📋 {t.userCenter.title === '个人中心' ? '产品完整信息' : 'Product Information'}</span>
             </div>
           }>
             <Tabs 
@@ -231,7 +235,7 @@ const ProductDetailPage: React.FC = () => {
               items={[
                 {
                   key: 'description',
-                  label: '📝 产品说明',
+                  label: `📝 ${t.userCenter.title === '个人中心' ? '产品说明' : 'Product Description'}`,
                   children: (
                     <div>
                       <Paragraph className="text-gray-700 mb-4 leading-relaxed">
@@ -241,7 +245,7 @@ const ProductDetailPage: React.FC = () => {
                       <div className="mb-4">
                         <Title level={5} className="mb-3 text-gray-700 flex items-center">
                           <span className="mr-2">✨</span>
-                          主要特色
+                          {t.userCenter.title === '个人中心' ? '主要特色' : 'Key Features'}
                         </Title>
                         <ul className="space-y-3">
                           {product.features.map((feature, index) => (
@@ -258,13 +262,20 @@ const ProductDetailPage: React.FC = () => {
                       <div className="border-t pt-4 bg-gray-50 -mx-6 -mb-6 px-6 pb-6 mt-6">
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
-                            <Text type="secondary" className="block">产品编号</Text>
+                            <Text type="secondary" className="block">
+                              {t.userCenter.title === '个人中心' ? '产品编号' : 'Product SKU'}
+                            </Text>
                             <Text strong>{product.sku}</Text>
                           </div>
                           <div>
-                            <Text type="secondary" className="block">库存状态</Text>
+                            <Text type="secondary" className="block">
+                              {t.userCenter.title === '个人中心' ? '库存状态' : 'Stock Status'}
+                            </Text>
                             <Text strong className={product.stock > 0 ? 'text-green-600' : 'text-red-600'}>
-                              {product.stock > 0 ? `${product.stock} 件可售` : '缺货'}
+                              {product.stock > 0 
+                                ? (t.userCenter.title === '个人中心' ? `${product.stock} 件可售` : `${product.stock} Available`)
+                                : (t.userCenter.title === '个人中心' ? '缺货' : 'Out of Stock')
+                              }
                             </Text>
                           </div>
                         </div>
@@ -274,33 +285,45 @@ const ProductDetailPage: React.FC = () => {
                 },
                 {
                   key: 'specifications',
-                  label: '📋 详细规格',
+                  label: `📋 ${t.userCenter.title === '个人中心' ? '详细规格' : 'Specifications'}`,
                   children: (
                     <div>
-                      <Title level={5} className="mb-4">产品规格</Title>
+                      <Title level={5} className="mb-4">
+                        {t.userCenter.title === '个人中心' ? '产品规格' : 'Product Specifications'}
+                      </Title>
                       <Row gutter={[16, 12]}>
                         <Col span={12}>
                           <div className="text-center p-3 bg-gray-50 rounded-lg">
-                            <Text strong className="block text-gray-600 text-sm">品牌</Text>
+                            <Text strong className="block text-gray-600 text-sm">
+                              {t.userCenter.title === '个人中心' ? '品牌' : 'Brand'}
+                            </Text>
                             <Text className="text-base">{product.brand}</Text>
                           </div>
                         </Col>
                         <Col span={12}>
                           <div className="text-center p-3 bg-gray-50 rounded-lg">
-                            <Text strong className="block text-gray-600 text-sm">型号</Text>
+                            <Text strong className="block text-gray-600 text-sm">
+                              {t.userCenter.title === '个人中心' ? '型号' : 'Model'}
+                            </Text>
                             <Text className="text-base">{product.sku}</Text>
                           </div>
                         </Col>
                         <Col span={12}>
                           <div className="text-center p-3 bg-gray-50 rounded-lg">
-                            <Text strong className="block text-gray-600 text-sm">分类</Text>
+                            <Text strong className="block text-gray-600 text-sm">
+                              {t.userCenter.title === '个人中心' ? '分类' : 'Category'}
+                            </Text>
                             <Text className="text-base">{product.category}</Text>
                           </div>
                         </Col>
                         <Col span={12}>
                           <div className="text-center p-3 bg-gray-50 rounded-lg">
-                            <Text strong className="block text-gray-600 text-sm">库存</Text>
-                            <Text className="text-base">{product.stock} 件</Text>
+                            <Text strong className="block text-gray-600 text-sm">
+                              {t.userCenter.title === '个人中心' ? '库存' : 'Stock'}
+                            </Text>
+                            <Text className="text-base">
+                              {t.userCenter.title === '个人中心' ? `${product.stock} 件` : `${product.stock} Units`}
+                            </Text>
                           </div>
                         </Col>
                       </Row>
@@ -309,10 +332,12 @@ const ProductDetailPage: React.FC = () => {
                 },
                 {
                   key: 'shipping',
-                  label: '📦 配送物流',
+                  label: `📦 ${t.userCenter.title === '个人中心' ? '配送物流' : 'Shipping & Logistics'}`,
                   children: (
                     <div>
-                      <Title level={5} className="mb-4">配送政策</Title>
+                      <Title level={5} className="mb-4">
+                        {t.userCenter.title === '个人中心' ? '配送政策' : 'Shipping Policy'}
+                      </Title>
                       <Row gutter={[12, 12]}>
                         <Col span={12}>
                           <div className="p-3 bg-green-50 rounded-lg">
@@ -344,10 +369,12 @@ const ProductDetailPage: React.FC = () => {
                 },
                 {
                   key: 'service',
-                  label: '💎 服务保障',
+                  label: `💎 ${t.userCenter.title === '个人中心' ? '服务保障' : 'Service Guarantee'}`,
                   children: (
                     <div>
-                      <Title level={5} className="mb-4">售后服务</Title>
+                      <Title level={5} className="mb-4">
+                        {t.userCenter.title === '个人中心' ? '售后服务' : 'After-sales Service'}
+                      </Title>
                       <Row gutter={[12, 12]}>
                         <Col span={12}>
                           <div className="p-3 bg-yellow-50 rounded-lg">
@@ -394,8 +421,10 @@ const ProductDetailPage: React.FC = () => {
             bodyStyle={{ padding: '12px' }}
             title={
               <div className="flex items-center space-x-2">
-                <span className="text-sm">👁️ 定制产品 - 实时预览</span>
-                <Text type="secondary" className="text-xs">所见即所得</Text>
+                <span className="text-sm">👁️ {t.userCenter.title === '个人中心' ? '定制产品 - 实时预览' : 'Custom Product - Live Preview'}</span>
+                <Text type="secondary" className="text-xs">
+                  {t.userCenter.title === '个人中心' ? '所见即所得' : 'What you see is what you get'}
+                </Text>
               </div>
             }
           >
@@ -410,7 +439,9 @@ const ProductDetailPage: React.FC = () => {
                     />
                   </div>
                   <Title level={5} className="text-gray-700 mb-1">{product.name}</Title>
-                  <Text type="secondary" className="text-sm">定制预览模式</Text>
+                  <Text type="secondary" className="text-sm">
+                    {t.userCenter.title === '个人中心' ? '定制预览模式' : 'Customization Preview Mode'}
+                  </Text>
                 </div>
               </div>
 
@@ -418,12 +449,20 @@ const ProductDetailPage: React.FC = () => {
               <div className="bg-gray-50 rounded-lg p-3 mb-3">
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
-                    <Text type="secondary" className="block">当前配置</Text>
-                    <Text strong>标准版本</Text>
+                    <Text type="secondary" className="block">
+                      {t.userCenter.title === '个人中心' ? '当前配置' : 'Current Config'}
+                    </Text>
+                    <Text strong>
+                      {t.userCenter.title === '个人中心' ? '标准版本' : 'Standard Version'}
+                    </Text>
                   </div>
                   <div>
-                    <Text type="secondary" className="block">定制状态</Text>
-                    <Text strong className="text-green-600">可定制</Text>
+                    <Text type="secondary" className="block">
+                      {t.userCenter.title === '个人中心' ? '定制状态' : 'Custom Status'}
+                    </Text>
+                    <Text strong className="text-green-600">
+                      {t.userCenter.title === '个人中心' ? '可定制' : 'Customizable'}
+                    </Text>
                   </div>
                 </div>
               </div>
@@ -437,7 +476,7 @@ const ProductDetailPage: React.FC = () => {
                   icon={<span>🔍</span>}
                   className="border-blue-300 text-blue-600 hover:border-blue-500"
                 >
-                  3D预览模式
+                  {t.userCenter.title === '个人中心' ? '3D预览模式' : '3D Preview Mode'}
                 </Button>
                 <Button 
                   type="dashed" 
@@ -446,7 +485,7 @@ const ProductDetailPage: React.FC = () => {
                   icon={<span>📱</span>}
                   className="border-green-300 text-green-600 hover:border-green-500"
                 >
-                  AR试戴体验
+                  {t.userCenter.title === '个人中心' ? 'AR试戴体验' : 'AR Try-on Experience'}
                 </Button>
               </div>
             </div>
@@ -461,7 +500,7 @@ const ProductDetailPage: React.FC = () => {
             bodyStyle={{ padding: '12px' }}
             title={
               <div className="flex items-center">
-                <span className="text-base">🎨 个人定制专区</span>
+                <span className="text-base">🎨 {t.userCenter.title === '个人中心' ? '个人定制专区' : 'Personal Customization Zone'}</span>
                 <Badge count="NEW" className="ml-2" />
               </div>
             }

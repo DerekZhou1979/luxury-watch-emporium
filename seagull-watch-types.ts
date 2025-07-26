@@ -104,8 +104,8 @@ export interface OrderItem {
   quantity: number;       // 数量
   imageUrl: string;       // 产品图片
   sku: string;           // 产品编码
-  isCustomized?: boolean; // 是否为定制产品（可选）
-  customization?: CustomizationDetails; // 定制配置详情（可选）
+  isCustomized: boolean;  // 是否为定制产品
+  customization?: CustomizationDetails; // 定制配置详情（定制产品必需）
 }
 
 // 订单接口

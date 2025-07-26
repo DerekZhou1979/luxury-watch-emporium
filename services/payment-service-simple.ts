@@ -8,7 +8,8 @@ import {
   PaymentMethod, 
   Order, 
   OrderStatus, 
-  PaymentInfo 
+  PaymentInfo,
+  OrderItem
 } from '../seagull-watch-types';
 
 // 获取数据库管理器实例
@@ -89,6 +90,14 @@ export class PaymentServiceSimple {
 
       // 保存订单项目详情
       for (const item of order.items) {
+        // 构建完整的商品快照，包含定制信息
+        const productSnapshot = {
+          ...item,
+          // 如果是定制商品，确保保存完整的定制配置
+          isCustomized: item.isCustomized || false,
+          customization: item.customization || null
+        };
+
         const orderItemData = {
           order_id: dbOrder.id,
           product_id: item.productId,
@@ -98,10 +107,19 @@ export class PaymentServiceSimple {
           price: item.price,
           quantity: item.quantity,
           total_price: item.price * item.quantity,
-          product_snapshot: item  // 保存商品快照，防止商品信息变更影响历史订单
+          product_snapshot: productSnapshot  // 保存完整商品快照，包含定制信息
         } as any;
         
         await db.getEngine().insert('order_items', orderItemData);
+        
+        // 如果是定制商品，记录定制信息
+        if (item.isCustomized && item.customization) {
+          console.log('📝 保存定制商品信息:', {
+            productId: item.productId,
+            customizationId: item.customization.id,
+            finalPrice: item.customization.finalPrice
+          });
+        }
       }
 
       console.log('📦 订单项目保存成功');
@@ -233,16 +251,31 @@ export class PaymentServiceSimple {
       where: [{ field: 'order_id', operator: '=', value: dbOrder.id }]
     });
 
-    // 转换订单项目格式
-    const items = orderItems.map(item => ({
-      productId: item.product_id,
-      name: item.product_name,
-      imageUrl: item.product_image,
-      sku: item.sku,
-      price: item.price,
-      quantity: item.quantity,
-      total: item.total_price
-    }));
+    // 转换订单项目格式，正确解析定制信息
+    const items: OrderItem[] = orderItems.map(item => {
+      // 从product_snapshot中提取完整信息，包括定制数据
+      const snapshot = item.product_snapshot || {};
+      
+      return {
+        productId: item.product_id,
+        name: item.product_name,
+        imageUrl: item.product_image,
+        sku: item.sku,
+        price: item.price,
+        quantity: item.quantity,
+        isCustomized: snapshot.isCustomized || false,
+        customization: snapshot.customization || undefined
+      };
+    });
+
+    console.log('📦 订单项目解析结果:', {
+      orderId: dbOrder.order_number,
+      items: items.map(item => ({
+        name: item.name,
+        isCustomized: item.isCustomized,
+        hasCustomization: !!item.customization
+      }))
+    });
 
     // 构建完整的订单对象
     return {
