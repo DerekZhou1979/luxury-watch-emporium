@@ -25,7 +25,7 @@ import {
 } from '../seagull-watch-customization-types';
 import { databaseProductService } from '../services/database-product-service';
 import LoadingSpinner from '../components/loading-indicator';
-import WatchCustomizer from '../components/watch-customizer';
+import WatchCustomizerEnhanced from '../components/watch-customizer-enhanced';
 import { useCart } from '../hooks/use-shopping-cart';
 import { createCustomizableProduct } from '../components/customization-config';
 import { useLanguage } from '../hooks/use-language';
@@ -411,110 +411,14 @@ const ProductDetailPage: React.FC = () => {
         </Col>
       </Row>
 
-      {/* 第三行：实时预览 + 个性化定制区域 */}
-      <Row gutter={[16, 16]} className="mb-4">
-        {/* 左侧：实时预览 (2/5) */}
-        <Col xs={24} lg={10}>
-          <Card 
-            className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50" 
-            style={{ minHeight: '450px' }}
-            bodyStyle={{ padding: '12px' }}
-            title={
-              <div className="flex items-center space-x-2">
-                <span className="text-sm">👁️ {t.userCenter.title === '个人中心' ? '定制产品 - 实时预览' : 'Custom Product - Live Preview'}</span>
-                <Text type="secondary" className="text-xs">
-                  {t.userCenter.title === '个人中心' ? '所见即所得' : 'What you see is what you get'}
-                </Text>
-              </div>
-            }
-          >
-            <div className="bg-white rounded-lg p-3">
-              <div className="aspect-square w-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center mb-3">
-                <div className="text-center">
-                  <div className="w-28 h-28 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto mb-3 flex items-center justify-center shadow-lg">
-                    <img 
-                      src={product.imageUrl} 
-                      alt="预览" 
-                      className="w-24 h-24 object-cover rounded-full"
-                    />
-                  </div>
-                  <Title level={5} className="text-gray-700 mb-1">{product.name}</Title>
-                  <Text type="secondary" className="text-sm">
-                    {t.userCenter.title === '个人中心' ? '定制预览模式' : 'Customization Preview Mode'}
-                  </Text>
-                </div>
-              </div>
-
-              {/* 预览信息 */}
-              <div className="bg-gray-50 rounded-lg p-3 mb-3">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <Text type="secondary" className="block">
-                      {t.userCenter.title === '个人中心' ? '当前配置' : 'Current Config'}
-                    </Text>
-                    <Text strong>
-                      {t.userCenter.title === '个人中心' ? '标准版本' : 'Standard Version'}
-                    </Text>
-                  </div>
-                  <div>
-                    <Text type="secondary" className="block">
-                      {t.userCenter.title === '个人中心' ? '定制状态' : 'Custom Status'}
-                    </Text>
-                    <Text strong className="text-green-600">
-                      {t.userCenter.title === '个人中心' ? '可定制' : 'Customizable'}
-                    </Text>
-                  </div>
-                </div>
-              </div>
-
-              {/* 预览操作 */}
-              <div className="space-y-2">
-                <Button 
-                  type="dashed" 
-                  block 
-                  size="small"
-                  icon={<span>🔍</span>}
-                  className="border-blue-300 text-blue-600 hover:border-blue-500"
-                >
-                  {t.userCenter.title === '个人中心' ? '3D预览模式' : '3D Preview Mode'}
-                </Button>
-                <Button 
-                  type="dashed" 
-                  block 
-                  size="small"
-                  icon={<span>📱</span>}
-                  className="border-green-300 text-green-600 hover:border-green-500"
-                >
-                  {t.userCenter.title === '个人中心' ? 'AR试戴体验' : 'AR Try-on Experience'}
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </Col>
-
-        {/* 右侧：个性化定制区域 (3/5) */}
-        <Col xs={24} lg={14}>
-          <Card 
-            className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50" 
-            style={{ minHeight: '450px' }}
-            bodyStyle={{ padding: '12px' }}
-            title={
-              <div className="flex items-center">
-                <span className="text-base">🎨 {t.userCenter.title === '个人中心' ? '个人定制专区' : 'Personal Customization Zone'}</span>
-                <Badge count="NEW" className="ml-2" />
-              </div>
-            }
-          >
-            <div className="bg-white rounded-lg p-3">
-              <WatchCustomizer
-                product={createCustomizableProduct(product)}
-                onConfigurationChange={handleCustomizationChange}
-                onAddToCart={handleCustomAddToCart}
-              />
-            </div>
-          </Card>
-        </Col>
-      </Row>
+      {/* 增强型定制区域 - 分屏协同模式 */}
+      <div className="mb-4">
+        <WatchCustomizerEnhanced
+          product={createCustomizableProduct(product)}
+          onConfigurationChange={handleCustomizationChange}
+          onAddToCart={handleCustomAddToCart}
+        />
+      </div>
 
     </div>
   );
