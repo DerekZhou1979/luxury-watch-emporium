@@ -112,6 +112,24 @@ export class CustomizationService {
   }
 
   /**
+   * 检查是否为基础定制（所有选项都是基础价格）
+   */
+  static isBasicCustomization(
+    selectedOptions: Record<string, string>,
+    options: Record<string, CustomizationOption[]>
+  ): boolean {
+    for (const [categoryId, optionId] of Object.entries(selectedOptions)) {
+      const categoryOptions = options[categoryId] || [];
+      const selectedOption = categoryOptions.find(opt => opt.id === optionId);
+      
+      if (selectedOption && selectedOption.base_price > 0) {
+        return false; // 如果有任何付费选项，就不是基础定制
+      }
+    }
+    return true; // 所有选项都是免费的，是基础定制
+  }
+
+  /**
    * 计算定制价格
    */
   static calculateCustomizationPrice(
@@ -122,52 +140,126 @@ export class CustomizationService {
     basePrice: number;
     additionalPrice: number;
     totalPrice: number;
+    isBasicCustomization: boolean;
     priceBreakdown: Array<{
       type: 'base' | 'option';
       name: string;
       name_en: string;
       price: number;
+      isBasic: boolean;
     }>;
   } {
-         const priceBreakdown: Array<{
-       type: 'base' | 'option';
-       name: string;
-       name_en: string;
-       price: number;
-     }> = [{
-       type: 'base',
-       name: '基础价格',
-       name_en: 'Base Price',
-       price: basePrice
-     }];
+    const priceBreakdown: Array<{
+      type: 'base' | 'option';
+      name: string;
+      name_en: string;
+      price: number;
+      isBasic: boolean;
+    }> = [{
+      type: 'base',
+      name: '基础价格',
+      name_en: 'Base Price',
+      price: basePrice,
+      isBasic: true
+    }];
 
     let additionalPrice = 0;
+    let hasPremiumOptions = false;
 
     // 计算每个选项的额外费用
     for (const [categoryId, optionId] of Object.entries(selectedOptions)) {
       const categoryOptions = options[categoryId] || [];
       const selectedOption = categoryOptions.find(opt => opt.id === optionId);
       
-      if (selectedOption && selectedOption.base_price > 0) {
-        additionalPrice += selectedOption.base_price;
-                 priceBreakdown.push({
-           type: 'option',
-           name: selectedOption.name,
-           name_en: selectedOption.name_en,
-           price: selectedOption.base_price
-         });
+      if (selectedOption) {
+        if (selectedOption.base_price > 0) {
+          additionalPrice += selectedOption.base_price;
+          hasPremiumOptions = true;
+        }
+        
+        priceBreakdown.push({
+          type: 'option',
+          name: selectedOption.name,
+          name_en: selectedOption.name_en,
+          price: selectedOption.base_price,
+          isBasic: selectedOption.base_price === 0
+        });
       }
     }
+
+    const isBasicCustomization = !hasPremiumOptions;
 
     return {
       basePrice,
       additionalPrice,
       totalPrice: basePrice + additionalPrice,
+      isBasicCustomization,
       priceBreakdown
     };
   }
 
-    /**
+  /**
+   * 获取基础定制推荐配置
+   */
+  static getBasicCustomizationRecommendation(
+    categories: CustomizationCategory[],
+    options: Record<string, CustomizationOption[]>
+  ): Record<string, string> {
+    const recommendation: Record<string, string> = {};
+    
+    for (const category of categories) {
+      const categoryOptions = options[category.id] || [];
+      // 找到该类别中价格最低（基础）的选项
+      const basicOption = categoryOptions.find(opt => opt.base_price === 0);
+      if (basicOption) {
+        recommendation[category.id] = basicOption.id;
+      }
+    }
+    
+    return recommendation;
+  }
+
+  /**
+   * 验证定制配置的完整性
+   */
+  static validateCustomizationCompleteness(
+    selectedOptions: Record<string, string>,
+    categories: CustomizationCategory[],
+    options: Record<string, CustomizationOption[]>
+  ): {
+    isValid: boolean;
+    missingCategories: string[];
+    errors: string[];
+  } {
+    const missingCategories: string[] = [];
+    const errors: string[] = [];
+
+    // 检查是否所有必需类别都已选择
+    for (const category of categories) {
+      if (!selectedOptions[category.id]) {
+        missingCategories.push(category.id);
+        errors.push(`缺少${category.name}的选择`);
+      }
+    }
+
+    // 验证选择的选项是否有效
+    for (const [categoryId, optionId] of Object.entries(selectedOptions)) {
+      const categoryOptions = options[categoryId] || [];
+      const selectedOption = categoryOptions.find(opt => opt.id === optionId);
+      
+      if (!selectedOption) {
+        errors.push(`无效的选项: ${categoryId} -> ${optionId}`);
+      }
+    }
+
+    return {
+      isValid: missingCategories.length === 0 && errors.length === 0,
+      missingCategories,
+      errors
+    };
+  }
+
+  /**
    * 保存订单定制详情
    */
   static async saveOrderCustomizationDetails(
@@ -244,6 +336,37 @@ export class CustomizationService {
     } catch (error) {
       console.error('❌ 获取定制选项详情失败:', error);
       return [];
+    }
+  }
+
+  /**
+   * 获取定制统计信息
+   */
+  static async getCustomizationStatistics(): Promise<{
+    totalCustomizations: number;
+    basicCustomizations: number;
+    premiumCustomizations: number;
+    averageAdditionalCost: number;
+  }> {
+    try {
+      const db = DatabaseManager.getInstance();
+      
+      // 这里可以添加统计查询逻辑
+      // 由于当前使用浏览器数据库，这里返回模拟数据
+      return {
+        totalCustomizations: 0,
+        basicCustomizations: 0,
+        premiumCustomizations: 0,
+        averageAdditionalCost: 0
+      };
+    } catch (error) {
+      console.error('❌ 获取定制统计信息失败:', error);
+      return {
+        totalCustomizations: 0,
+        basicCustomizations: 0,
+        premiumCustomizations: 0,
+        averageAdditionalCost: 0
+      };
     }
   }
 } 

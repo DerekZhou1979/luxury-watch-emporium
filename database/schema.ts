@@ -372,4 +372,28 @@ export interface OrderCustomizationDetailRecord {
   created_at: string;
 }
 
+// 添加定制选项的多语言配置接口
+export interface CustomizationOptionMultiLang {
+  id: string;
+  category: string; // 'case', 'dial', 'hands', 'secondHand', 'movement', 'strap'
+  value: string; // 选项值，如 'steel', 'gold' 等
+  name_zh: string; // 中文名称
+  name_en: string; // 英文名称
+  desc_zh: string; // 中文描述
+  desc_en: string; // 英文描述
+  price: number;
+  icon: string;
+  popular?: boolean;
+}
+
+// 添加定制类别的多语言配置接口
+export interface CustomizationCategoryMultiLang {
+  id: string;
+  title_zh: string;
+  title_en: string;
+  icon: string;
+  description_zh: string;
+  description_en: string;
+}
+
 export default DatabaseSchema; 

@@ -270,13 +270,7 @@ const HomePage: React.FC = () => {
                     background: '#ffffff',
                     transition: 'all 0.3s ease'
                   }}
-                  bodyStyle={{ 
-                    padding: '24px 16px',
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center'
-                  }}
+                  styles={{ body: { padding: '24px' } }}
                   className="hover:shadow-lg hover:scale-105"
                 >
                   <Title 

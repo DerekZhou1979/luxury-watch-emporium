@@ -24,6 +24,7 @@ import {
 import { useCart } from '../hooks/use-shopping-cart';
 import { useLanguage } from '../hooks/use-language';
 import { CartItem } from '../seagull-watch-types';
+import { CustomizationMultiLangService } from '../services/customization-multilang-service';
 
 const { Title, Text } = Typography;
 
@@ -170,104 +171,40 @@ const ShoppingCartPage: React.FC = () => {
                           {item.category}
                         </Tag>
 
-                        {/* 定制配置详情 */}
-                        {item.isCustomized && item.customization && (
-                          <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                            <Text strong style={{ fontSize: '13px', color: '#374151', display: 'block', marginBottom: '8px' }}>
-                              📋 定制配置
+                        {/* 定制信息展示 - 使用多语言服务 */}
+                        {item.customization && (
+                          <div className="mb-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                            <Text className="text-sm font-semibold text-blue-800 block mb-2">
+                              {t.userCenter?.title === '个人中心' ? '🎨 个人定制配置' : '🎨 Custom Configuration'}
                             </Text>
-                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                              {Object.entries(item.customization.configurations).map(([key, value]) => {
-                                // 中文映射
-                                const configNameMap: Record<string, string> = {
-                                  'case_material': '表壳材质',
-                                  'dial_style': '表盘样式',
-                                  'hour_minute_hands': '时分针样式',
-                                  'second_hand': '秒针样式',
-                                  'strap_type': '表带类型',
-                                  'movement_type': '机芯类型',
-                                  // 兼容旧版本
-                                  'dial_color': '表盘颜色',
-                                  'strap_material': '表带材质',
-                                  'engraving_text': '个性刻字'
-                                };
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              {item.customization.configurations && Object.entries(item.customization.configurations).map(([key, value]) => {
+                                const language = t.userCenter?.title === '个人中心' ? 'zh' : 'en';
+                                const category = CustomizationMultiLangService.getCategories().find(c => c.id === key);
+                                const option = CustomizationMultiLangService.getOption(key, value as string);
                                 
-                                const valueMap: Record<string, string> = {
-                                  // 表壳材质
-                                  'stainless_steel': '不锈钢',
-                                  'titanium': '钛合金',
-                                  'rose_gold': '玫瑰金',
-                                  'ceramic': '陶瓷',
-                                  // 表盘样式
-                                  'white_sunburst': '白色太阳纹',
-                                  'black_glossy': '黑色光面',
-                                  'blue_gradient': '深海蓝渐变',
-                                  'silver_textured': '银色麦粒纹',
-                                  // 时分针样式
-                                  'classic_sword': '经典剑形针',
-                                  'dauphine_hands': '太子妃针',
-                                  'arrow_hands': '箭头式指针',
-                                  'baton_hands': '棒形指针',
-                                  // 秒针样式
-                                  'red_thin': '红色细针',
-                                  'blue_counterweight': '蓝色配重针',
-                                  'orange_racing': '橙色赛车针',
-                                  'white_lume': '白色夜光针',
-                                  // 表带类型
-                                  'leather_brown': '棕色真皮',
-                                  'steel_bracelet': '钢制表链',
-                                  'rubber_black': '黑色硅胶',
-                                  'nato_strap': 'NATO尼龙',
-                                  'mesh_steel': '钢网表带',
-                                  // 机芯类型
-                                  'automatic_basic': '基础自动机芯',
-                                  'automatic_premium': '高级自动机芯',
-                                  'chronograph': '计时机芯',
-                                  'gmt': 'GMT双时区',
-                                  // 兼容旧版本
-                                  'white': '白色',
-                                  'black': '黑色',
-                                  'blue': '深蓝',
-                                  'leather': '真皮表带',
-                                  'rubber': '硅胶表带'
-                                };
-                                
-                                const displayName = configNameMap[key] || key.replace('_', ' ');
-                                const displayValue = valueMap[value] || value;
-                                
-                                if (!value) return null;
+                                if (!category || !option) return null;
                                 
                                 return (
-                                  <div key={key} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                                    <Text type="secondary">{displayName}:</Text>
-                                    <Text style={{ color: '#374151', fontWeight: '500' }}>{displayValue}</Text>
+                                  <div key={key} className="flex justify-between">
+                                    <span className="text-gray-600">
+                                      {CustomizationMultiLangService.getLocalizedCategoryTitle(category, language)}:
+                                    </span>
+                                    <span className="font-medium text-blue-700">
+                                      {CustomizationMultiLangService.getLocalizedName(option, language)}
+                                    </span>
                                   </div>
                                 );
                               })}
-                            </Space>
-                            
-                            {/* 价格明细 */}
-                            <Divider style={{ margin: '8px 0' }} />
-                            <Text strong style={{ fontSize: '12px', color: '#374151', display: 'block', marginBottom: '6px' }}>
-                              💰 价格明细
-                            </Text>
-                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                              {item.customization.priceBreakdown.map((breakdown, index) => (
-                                <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-                                  <Text type="secondary">{breakdown.name}:</Text>
-                                  <Text style={{ 
-                                    color: breakdown.type === 'base' ? '#374151' : '#059669',
-                                    fontWeight: breakdown.type === 'base' ? 'normal' : '500'
-                                  }}>
-                                    {breakdown.type === 'base' ? '' : '+'}¥{breakdown.price.toLocaleString()}
-                                  </Text>
-                                </div>
-                              ))}
-                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginTop: '4px', paddingTop: '4px', borderTop: '1px solid #e5e7eb' }}>
-                                <Text strong style={{ color: '#374151' }}>定制总价:</Text>
-                                <Text strong style={{ color: '#3b82f6' }}>¥{item.customization.finalPrice.toLocaleString()}</Text>
+                            </div>
+                            {item.customization.finalPrice && (
+                              <div className="mt-2 pt-2 border-t border-blue-200">
+                                <Text className="text-sm font-bold text-blue-800">
+                                  {t.userCenter?.title === '个人中心' ? '定制总价: ' : 'Custom Price: '}
+                                  ¥{item.customization.finalPrice.toLocaleString()}
+                                </Text>
                               </div>
-                            </Space>
+                            )}
                           </div>
                         )}
                       </Space>

@@ -1332,3 +1332,262 @@ body[data-env="development"]::after {
   opacity: 0.7;
   pointer-events: none;
 } 
+
+/* 3D预览增强样式 */
+.watch-3d-preview {
+  perspective: 1000px;
+  perspective-origin: center center;
+}
+
+.watch-container {
+  transform-style: preserve-3d;
+}
+
+/* 定制器模态框样式 */
+.watch-customizer-modal .ant-modal-content {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.watch-customizer-modal .ant-modal-body {
+  padding: 24px;
+}
+
+/* 定制选项按钮样式 */
+.ant-radio-button-wrapper {
+  transition: all 0.3s ease;
+}
+
+.ant-radio-button-wrapper:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2);
+}
+
+.ant-radio-button-wrapper-checked {
+  background: linear-gradient(135deg, #1890ff, #36cfc9) !important;
+  border-color: #1890ff !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(24, 144, 255, 0.3);
+}
+
+/* 手表组件动画 */
+.watch-case {
+  transition: all 0.5s ease;
+}
+
+.strap-top, .strap-bottom {
+  transition: all 0.3s ease;
+}
+
+/* 定制详情卡片样式 */
+.customization-details {
+  background: linear-gradient(135deg, #f8f9ff 0%, #fff5f5 100%);
+  border: 1px solid #e6f3ff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+}
+
+.customization-details .ant-image {
+  border: 2px solid #1890ff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* 集成定制工坊样式 */
+.customization-integrated {
+  padding: 8px 0;
+}
+
+.customization-options .ant-card {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.customization-options .ant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.customization-options .ant-card-head {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.customization-options .ant-card-body {
+  padding: 16px;
+}
+
+/* 定制选项卡片样式 */
+.customization-options .ant-col > div {
+  height: 100%;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.customization-options .ant-col > div:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+}
+
+.customization-options .ant-col > div.bg-blue-50 {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+  border: 2px solid #3b82f6 !important;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+}
+
+/* 材质图标样式增强 */
+.customization-options .w-8.h-8 {
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.customization-options .ant-col:hover .w-8.h-8 {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 实时预览区域样式 */
+.watch-live-preview .ant-card {
+  border-radius: 12px;
+  overflow: hidden;
+  height: 100%;
+}
+
+.watch-live-preview .ant-card-head {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom: none;
+}
+
+.watch-live-preview .ant-card-head-title {
+  color: white;
+}
+
+.preview-container {
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+/* 手表预览动画 */
+.watch-preview {
+  animation: gentle-float 4s ease-in-out infinite;
+}
+
+@keyframes gentle-float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-3px) rotate(1deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-3px) rotate(-1deg);
+  }
+}
+
+/* 价格显示动画 */
+.watch-live-preview .ant-card-body > div:nth-child(2) {
+  animation: pulse-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-glow {
+  from {
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+  to {
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+  }
+}
+
+/* 左侧预览区域与产品图片卡片宽度对齐 */
+.watch-live-preview .ant-card {
+  border-radius: 12px;
+  overflow: hidden;
+  height: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.watch-live-preview .ant-card-body {
+  padding: 20px;
+}
+
+/* 实时预览容器增强 */
+.preview-container {
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.preview-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 手表预览3D效果增强 */
+.watch-preview {
+  z-index: 2;
+  position: relative;
+  filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.3));
+}
+
+/* 旋转按钮增强 */
+.watch-live-preview .ant-card-head .ant-btn {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white !important;
+  transition: all 0.2s ease;
+}
+
+.watch-live-preview .ant-card-head .ant-btn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  transform: scale(1.05);
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+  .customization-integrated .ant-row {
+    flex-direction: column;
+  }
+  
+  .watch-live-preview {
+    margin-bottom: 24px;
+    order: -1;
+  }
+  
+  .preview-container {
+    height: 300px !important;
+  }
+  
+  .customization-options {
+    order: 1;
+  }
+}
+
+/* 大屏幕下确保预览区域与产品图片卡片同宽 */
+@media (min-width: 992px) {
+  .customization-integrated .ant-col:first-child {
+    flex: 0 0 41.66666667%;
+    max-width: 41.66666667%;
+  }
+  
+  .customization-integrated .ant-col:last-child {
+    flex: 0 0 58.33333333%;
+    max-width: 58.33333333%;
+  }
+} 

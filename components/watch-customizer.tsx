@@ -1,543 +1,777 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Modal, Button, Steps, Radio, Typography, Space, Row, Col, Alert, Progress } from 'antd';
+import { CloseOutlined, CheckOutlined, RotateLeftOutlined, RotateRightOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useLanguage } from '../hooks/use-language';
-import {
-  Card,
-  Steps,
-  Button,
-  Space,
-  Typography,
-  Select,
-  Radio,
-  Badge,
-  Alert,
-  notification,
-  Modal,
-  Image,
-  Tag,
-  Divider
-} from 'antd';
-import {
-  CheckOutlined,
-  LeftOutlined,
-  RightOutlined,
-  ShoppingCartOutlined
-} from '@ant-design/icons';
-import {
-  CustomizableProduct,
-  CustomizationOption,
-  CustomizationConfiguration,
-  CustomizationPricing,
-  CustomizationValidation
-} from '../seagull-watch-customization-types';
-import { CustomizationDetails, CustomizationPriceBreakdown } from '../seagull-watch-types';
+import { useCart } from '../hooks/use-shopping-cart';
+import BasicCustomizationInfo from './basic-customization-info';
+import type { Product } from '../seagull-watch-types';
 
-const { Title, Text, Paragraph } = Typography;
-const { Option } = Select;
+const { Title, Text } = Typography;
+const { Step } = Steps;
 
 interface WatchCustomizerProps {
-  product: CustomizableProduct;
-  onConfigurationChange: (config: CustomizationConfiguration) => void;
-  onAddToCart: (customization: CustomizationDetails) => void;
-  initialConfiguration?: Partial<CustomizationConfiguration>;
+  isOpen: boolean;
+  onClose: () => void;
+  product: Product;
+  onConfirm?: (customization: any) => void;
+}
+
+interface CustomizationState {
+  case: string;
+  dial: string;
+  hands: string;
+  strap: string;
+  engraving: string;
+  totalPrice: number;
+  isBasicCustomization: boolean;
 }
 
 const WatchCustomizer: React.FC<WatchCustomizerProps> = ({
+  isOpen, 
+  onClose, 
   product,
-  onConfigurationChange,
-  onAddToCart,
-  initialConfiguration = {}
+  onConfirm 
 }) => {
-  const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+  const { addItem } = useCart();
+  
   const [currentStep, setCurrentStep] = useState(0);
-  const [configuration, setConfiguration] = useState<Record<string, string>>({});
-  const [pricing, setPricing] = useState<CustomizationPricing>({
-    basePrice: product.basePrice,
-    optionPricing: {},
-    totalModifier: 0,
-    finalPrice: product.basePrice,
-    breakdown: []
+  const [rotationAngle, setRotationAngle] = useState(0);
+  const [customization, setCustomization] = useState<CustomizationState>({
+    case: 'stainless',
+    dial: 'white',
+    hands: 'classic',
+    strap: 'leather',
+    engraving: '',
+    totalPrice: product?.price || 0,
+    isBasicCustomization: true
   });
-  const [validation, setValidation] = useState<CustomizationValidation>({
-    isValid: true,
-    errors: [],
-    warnings: []
-  });
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // 实时计算价格和检查是否为基础定制
+  useEffect(() => {
+    const basePrice = product?.price || 0;
+    const additionalCost = calculateAdditionalCost();
+    const isBasic = checkIfBasicCustomization();
+    
+    setCustomization(prev => ({
+      ...prev,
+      totalPrice: basePrice + additionalCost,
+      isBasicCustomization: isBasic
+    }));
+  }, [customization.case, customization.dial, customization.hands, customization.strap, product?.price]);
+
+  // 检查是否为基础定制（所有选项都是基础价格）
+  const checkIfBasicCustomization = (): boolean => {
+    const caseCosts: Record<string, number> = {
+      stainless: 0,
+      gold: 5000,
+      rose_gold: 4000,
+      titanium: 2000
+    };
+    
+    const dialCosts: Record<string, number> = {
+      white: 0,
+      black: 200,
+      blue: 300,
+      silver: 150
+    };
+    
+    const handsCosts: Record<string, number> = {
+      classic: 0,
+      luminous: 800,
+      gold_hands: 1200,
+      blue_hands: 600
+    };
+    
+    const strapCosts: Record<string, number> = {
+      leather: 0,
+      metal: 1500,
+      rubber: 300,
+      nato: 200
+    };
+    
+    return (
+      caseCosts[customization.case] === 0 &&
+      dialCosts[customization.dial] === 0 &&
+      handsCosts[customization.hands] === 0 &&
+      strapCosts[customization.strap] === 0
+    );
+  };
+
+  // 计算额外费用
+  const calculateAdditionalCost = (): number => {
+    let cost = 0;
+    
+    const caseCosts: Record<string, number> = {
+      stainless: 0,
+      gold: 5000,
+      rose_gold: 4000,
+      titanium: 2000
+    };
+    
+    const dialCosts: Record<string, number> = {
+      white: 0,
+      black: 200,
+      blue: 300,
+      silver: 150
+    };
+    
+    const handsCosts: Record<string, number> = {
+      classic: 0,
+      luminous: 800,
+      gold_hands: 1200,
+      blue_hands: 600
+    };
+    
+    const strapCosts: Record<string, number> = {
+      leather: 0,
+      metal: 1500,
+      rubber: 300,
+      nato: 200
+    };
+    
+    cost += caseCosts[customization.case] || 0;
+    cost += dialCosts[customization.dial] || 0;
+    cost += handsCosts[customization.hands] || 0;
+    cost += strapCosts[customization.strap] || 0;
+    
+    return cost;
+  };
+
+  // 旋转控制
+  const handleRotateLeft = () => {
+    setRotationAngle(prev => prev - 45);
+  };
+
+  const handleRotateRight = () => {
+    setRotationAngle(prev => prev + 45);
+  };
+
+  // 材质样式映射
+  const getCaseStyle = (caseType: string) => {
+    const styles: Record<string, React.CSSProperties> = {
+      stainless: {
+        background: 'linear-gradient(145deg, #e8e8e8, #c0c0c0)',
+        border: '4px solid #a8a8a8',
+        boxShadow: '0 0 20px rgba(192, 192, 192, 0.6)'
+      },
+      gold: {
+        background: 'linear-gradient(145deg, #ffd700, #ffed4e)',
+        border: '4px solid #daa520',
+        boxShadow: '0 0 20px rgba(255, 215, 0, 0.6)'
+      },
+      rose_gold: {
+        background: 'linear-gradient(145deg, #e8b4a0, #d4a574)',
+        border: '4px solid #b8860b',
+        boxShadow: '0 0 20px rgba(212, 165, 116, 0.6)'
+      },
+      titanium: {
+        background: 'linear-gradient(145deg, #c8c8c8, #a8a8a8)',
+        border: '4px solid #808080',
+        boxShadow: '0 0 20px rgba(168, 168, 168, 0.6)'
+      }
+    };
+    return styles[caseType] || styles.stainless;
+  };
+
+  const getDialStyle = (dialType: string) => {
+    const styles: Record<string, React.CSSProperties> = {
+      white: { background: '#ffffff', color: '#333333' },
+      black: { background: '#1a1a1a', color: '#ffffff' },
+      blue: { background: 'radial-gradient(circle, #1e3a8a, #3b82f6)', color: '#ffffff' },
+      silver: { background: 'radial-gradient(circle, #e5e7eb, #d1d5db)', color: '#333333' }
+    };
+    return styles[dialType] || styles.white;
+  };
+
+  const getHandsStyle = (handsType: string) => {
+    const styles: Record<string, React.CSSProperties> = {
+      classic: { background: '#333333' },
+      luminous: { 
+        background: '#00ff88',
+        boxShadow: '0 0 15px #00ff88',
+        filter: 'brightness(1.2)'
+      },
+      gold_hands: { 
+        background: 'linear-gradient(45deg, #ffd700, #ffed4e)',
+        boxShadow: '0 0 10px rgba(255, 215, 0, 0.5)'
+      },
+      blue_hands: { 
+        background: 'linear-gradient(45deg, #1e40af, #3b82f6)',
+        boxShadow: '0 0 10px rgba(59, 130, 246, 0.5)'
+      }
+    };
+    return styles[handsType] || styles.classic;
+  };
+
+  const getStrapStyle = (strapType: string) => {
+    const styles: Record<string, React.CSSProperties> = {
+      leather: {
+        background: 'linear-gradient(0deg, #8b4513 0%, #a0522d 50%, #8b4513 100%)',
+        backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)',
+        boxShadow: 'inset 0 0 10px rgba(0,0,0,0.3)'
+      },
+      metal: {
+        background: 'linear-gradient(0deg, #c0c0c0 0%, #e8e8e8 50%, #c0c0c0 100%)',
+        backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 6px)',
+        boxShadow: 'inset 0 0 15px rgba(0,0,0,0.2)'
+      },
+      rubber: {
+        background: 'linear-gradient(0deg, #2d2d2d 0%, #404040 50%, #2d2d2d 100%)',
+        backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.1) 1px, rgba(255,255,255,0.1) 2px)',
+        boxShadow: 'inset 0 0 8px rgba(0,0,0,0.4)'
+      },
+      nato: {
+        background: 'repeating-linear-gradient(0deg, #e53e3e 0px, #e53e3e 8px, #ffffff 8px, #ffffff 16px, #1a202c 16px, #1a202c 24px)',
+        boxShadow: 'inset 0 0 5px rgba(0,0,0,0.3)'
+      }
+    };
+    return styles[strapType] || styles.leather;
+  };
+
+  // 3D预览组件
+  const render3DPreview = () => {
+    const caseStyle = getCaseStyle(customization.case);
+    const dialStyle = getDialStyle(customization.dial);
+    const handsStyle = getHandsStyle(customization.hands);
+    const strapStyle = getStrapStyle(customization.strap);
+
+      return (
+      <div 
+        className="watch-3d-preview"
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '500px',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          borderRadius: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          perspective: '1000px',
+          perspectiveOrigin: 'center center'
+        }}
+      >
+        {/* 主手表容器 */}
+        <div 
+          className="watch-container"
+          style={{
+            transform: `rotateY(${rotationAngle}deg) rotateX(10deg)`,
+            transition: 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+            transformStyle: 'preserve-3d',
+            position: 'relative',
+            width: '220px',
+            height: '220px'
+          }}
+        >
+          {/* 上表带 */}
+          <div 
+            className="strap-top"
+            style={{
+              position: 'absolute',
+              top: '-110px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '40px',
+              height: '130px',
+              borderRadius: '20px 20px 10px 10px',
+              zIndex: 1,
+              transition: 'all 0.3s ease',
+              ...strapStyle
+            }}
+          />
+          
+          {/* 下表带 */}
+          <div 
+            className="strap-bottom"
+            style={{
+              position: 'absolute',
+              bottom: '-110px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '40px',
+              height: '130px',
+              borderRadius: '10px 10px 20px 20px',
+              zIndex: 1,
+              transition: 'all 0.3s ease',
+              ...strapStyle
+            }}
+          />
+
+          {/* 表壳 */}
+          <div 
+            className="watch-case"
+            style={{
+              width: '220px',
+              height: '220px',
+              borderRadius: '50%',
+              position: 'relative',
+              zIndex: 2,
+              transition: 'all 0.5s ease',
+              ...caseStyle
+            }}
+          >
+            {/* 表冠 */}
+            <div style={{
+              position: 'absolute',
+              right: '-10px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: '20px',
+              height: '35px',
+              borderRadius: '10px',
+              zIndex: 3,
+              ...caseStyle
+            }} />
+
+            {/* 表盘 */}
+            <div 
+              className="watch-dial"
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '180px',
+                height: '180px',
+                borderRadius: '50%',
+                boxShadow: 'inset 0 0 30px rgba(0,0,0,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.3s ease',
+                ...dialStyle
+              }}
+            >
+              {/* 时标 */}
+              {[...Array(12)].map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    left: '50%',
+                    width: '3px',
+                    height: i % 3 === 0 ? '25px' : '15px',
+                    background: dialStyle.color,
+                    transformOrigin: '50% 80px',
+                    transform: `translateX(-50%) rotate(${i * 30}deg)`,
+                    borderRadius: '2px'
+                  }}
+                />
+              ))}
+
+              {/* 指针组 */}
+              <div className="watch-hands" style={{ position: 'relative' }}>
+                {/* 时针 */}
+                <div 
+                  style={{
+                    position: 'absolute',
+                    bottom: '90px',
+                    left: '50%',
+                    width: '5px',
+                    height: '55px',
+                    borderRadius: '3px',
+                    transformOrigin: 'bottom center',
+                    transform: 'translateX(-50%) rotate(45deg)',
+                    zIndex: 2,
+                    transition: 'all 0.3s ease',
+                    ...handsStyle
+                  }}
+                />
+                
+                {/* 分针 */}
+                <div 
+                  style={{
+                    position: 'absolute',
+                    bottom: '90px',
+                    left: '50%',
+                    width: '3px',
+                    height: '75px',
+                    borderRadius: '2px',
+                    transformOrigin: 'bottom center',
+                    transform: 'translateX(-50%) rotate(120deg)',
+                    zIndex: 3,
+                    transition: 'all 0.3s ease',
+                    ...handsStyle
+                  }}
+                />
+
+                {/* 秒针 */}
+                <div 
+                  style={{
+                    position: 'absolute',
+                    bottom: '90px',
+                    left: '50%',
+                    width: '1px',
+                    height: '85px',
+                    background: '#e74c3c',
+                    borderRadius: '1px',
+                    transformOrigin: 'bottom center',
+                    transform: 'translateX(-50%) rotate(200deg)',
+                    zIndex: 4
+                  }}
+                />
+                
+                {/* 中心轴 */}
+                <div 
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    width: '12px',
+                    height: '12px',
+                    borderRadius: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 5,
+                    border: `2px solid ${dialStyle.color}`,
+                    transition: 'all 0.3s ease',
+                    ...handsStyle
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 旋转控制按钮 */}
+        <div style={{
+          position: 'absolute',
+          bottom: '20px',
+          right: '20px',
+          display: 'flex',
+          gap: '12px',
+          zIndex: 10
+        }}>
+          <Button 
+            type="primary"
+            shape="circle"
+            size="large"
+            icon={<RotateLeftOutlined />} 
+            onClick={handleRotateLeft}
+            style={{ 
+              background: 'rgba(255,255,255,0.95)',
+              border: 'none',
+              color: '#1890ff',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+              width: '48px',
+              height: '48px'
+            }}
+          />
+          <Button 
+            type="primary"
+            shape="circle"
+            size="large"
+            icon={<RotateRightOutlined />} 
+            onClick={handleRotateRight}
+            style={{ 
+              background: 'rgba(255,255,255,0.95)',
+              border: 'none',
+              color: '#1890ff',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+              width: '48px',
+              height: '48px'
+            }}
+          />
+        </div>
+
+        {/* 定制状态指示器 */}
+        <div style={{
+          position: 'absolute',
+          top: '10px',
+          left: '10px',
+          background: customization.isBasicCustomization 
+            ? 'rgba(82, 196, 26, 0.9)' 
+            : 'rgba(24, 144, 255, 0.9)',
+          color: 'white',
+          padding: '8px 12px',
+          borderRadius: '20px',
+          fontSize: '12px',
+          zIndex: 10,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}>
+          <InfoCircleOutlined />
+          {customization.isBasicCustomization 
+            ? (language === 'zh' ? '基础定制' : 'Basic Customization')
+            : (language === 'zh' ? '高级定制' : 'Premium Customization')
+          }
+        </div>
+      </div>
+    );
+  };
 
   // 定制步骤配置
   const customizationSteps = [
     {
-      title: t.customization.caseTitle,
-      key: 'case_material',
-      description: t.customization.caseDescription,
-      icon: '⚙️'
+      title: language === 'zh' ? '表壳材质' : 'Case Material',
+      key: 'case' as keyof CustomizationState,
+      options: [
+        { value: 'stainless', label: language === 'zh' ? '不锈钢' : 'Stainless Steel', price: 0, isBasic: true },
+        { value: 'gold', label: language === 'zh' ? '黄金' : 'Gold', price: 5000, isBasic: false },
+        { value: 'rose_gold', label: language === 'zh' ? '玫瑰金' : 'Rose Gold', price: 4000, isBasic: false },
+        { value: 'titanium', label: language === 'zh' ? '钛合金' : 'Titanium', price: 2000, isBasic: false }
+      ]
     },
     {
-      title: t.customization.dialTitle,
-      key: 'dial_style',
-      description: t.customization.dialDescription,
-      icon: '🎨'
+      title: language === 'zh' ? '表盘样式' : 'Dial Style',
+      key: 'dial' as keyof CustomizationState,
+      options: [
+        { value: 'white', label: language === 'zh' ? '白色经典' : 'Classic White', price: 0, isBasic: true },
+        { value: 'black', label: language === 'zh' ? '黑色运动' : 'Sport Black', price: 200, isBasic: false },
+        { value: 'blue', label: language === 'zh' ? '蓝色商务' : 'Business Blue', price: 300, isBasic: false },
+        { value: 'silver', label: language === 'zh' ? '银色优雅' : 'Elegant Silver', price: 150, isBasic: false }
+      ]
     },
     {
-      title: t.customization.handsTitle,
-      key: 'hour_minute_hands',
-      description: t.customization.handsDescription,
-      icon: '🕐'
+      title: language === 'zh' ? '指针样式' : 'Hands Style',
+      key: 'hands' as keyof CustomizationState,
+      options: [
+        { value: 'classic', label: language === 'zh' ? '经典剑形针' : 'Classic Sword', price: 0, isBasic: true },
+        { value: 'luminous', label: language === 'zh' ? '夜光指针' : 'Luminous', price: 800, isBasic: false },
+        { value: 'gold_hands', label: language === 'zh' ? '金色指针' : 'Gold Hands', price: 1200, isBasic: false },
+        { value: 'blue_hands', label: language === 'zh' ? '蓝钢指针' : 'Blue Steel', price: 600, isBasic: false }
+      ]
     },
     {
-      title: t.customization.secondHandTitle,
-      key: 'second_hand',
-      description: t.customization.secondHandDescription,
-      icon: '⏱️'
-    },
-    {
-      title: t.customization.strapTitle,
-      key: 'strap_type',
-      description: t.customization.strapDescription,
-      icon: '🔗'
-    },
-    {
-      title: t.customization.movementTitle,
-      key: 'movement_type',
-      description: t.customization.movementDescription,
-      icon: '⚡'
+      title: language === 'zh' ? '表带材质' : 'Strap Material',
+      key: 'strap' as keyof CustomizationState,
+      options: [
+        { value: 'leather', label: language === 'zh' ? '真皮表带' : 'Leather Strap', price: 0, isBasic: true },
+        { value: 'metal', label: language === 'zh' ? '金属表带' : 'Metal Bracelet', price: 1500, isBasic: false },
+        { value: 'rubber', label: language === 'zh' ? '橡胶表带' : 'Rubber Strap', price: 300, isBasic: false },
+        { value: 'nato', label: language === 'zh' ? 'NATO表带' : 'NATO Strap', price: 200, isBasic: false }
+      ]
     }
-  ].filter(step => {
-    return product.customizationOptions.some(option => option.id === step.key);
-  });
+  ];
 
-  // 计算价格
-  const calculatePricing = useCallback((config: Record<string, string>) => {
-    let totalModifier = 0;
-    const breakdown: any[] = [];
+  const handleOptionChange = (key: keyof CustomizationState, value: string) => {
+    setCustomization(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
 
-    // 基础价格
-    breakdown.push({
-      category: t.customization.basePrice,
-      name: product.name,
-      price: product.basePrice,
-      type: 'base'
-    });
+  const renderCustomizationStep = () => {
+    const currentStepConfig = customizationSteps[currentStep];
+    if (!currentStepConfig) return null;
 
-    // 计算每个选项的价格修正
-    Object.entries(config).forEach(([optionId, valueId]) => {
-      const option = product.customizationOptions.find(opt => opt.id === optionId);
-      if (option) {
-        const selectedValue = option.values.find(val => val.id === valueId);
-        if (selectedValue && selectedValue.priceModifier > 0) {
-          totalModifier += selectedValue.priceModifier;
-          breakdown.push({
-            category: option.displayName,
-            name: selectedValue.displayName,
-            price: selectedValue.priceModifier,
-            type: 'option'
-          });
-        }
-      }
-    });
-
-    const finalPrice = product.basePrice + totalModifier;
-
-    setPricing({
-      basePrice: product.basePrice,
-      optionPricing: {},
-      totalModifier,
-      finalPrice,
-      breakdown
-    });
-  }, [product, t]);
-
-  // 验证配置
-  const validateConfiguration = useCallback((config: Record<string, string>) => {
-    const errors: any[] = [];
-    const warnings: any[] = [];
-
-    product.customizationOptions.forEach(option => {
-      if (option.required && !config[option.id]) {
-        errors.push({
-          optionId: option.id,
-          message: `${t.customization.selectOption}: ${option.displayName}`,
-          code: 'REQUIRED_MISSING'
-        });
-      }
-    });
-
-    setValidation({
-      isValid: errors.length === 0,
-      errors,
-      warnings
-    });
-  }, [product.customizationOptions, t]);
-
-  // 配置变更处理
-  const handleConfigChange = useCallback((optionId: string, valueId: string) => {
-    const newConfig = { ...configuration, [optionId]: valueId };
-    setConfiguration(newConfig);
-    calculatePricing(newConfig);
-    validateConfiguration(newConfig);
-  }, [configuration, calculatePricing, validateConfiguration]);
-
-  // 渲染选项
-  const renderOptions = (option: CustomizationOption) => {
-    if (option.type === 'select') {
-      return (
-        <Select
-          value={configuration[option.id]}
-          onChange={(value) => handleConfigChange(option.id, value)}
-          placeholder={t.customization.selectOption}
+    return (
+      <div style={{ padding: '20px 0' }}>
+        <Title level={4} style={{ marginBottom: 20, color: '#1890ff' }}>
+          {currentStepConfig.title}
+        </Title>
+        
+        {/* 基础定制提示 */}
+        {currentStep === 0 && (
+          <>
+            <BasicCustomizationInfo isVisible={true} />
+            <Alert
+              message={language === 'zh' ? '💡 定制提示' : '💡 Customization Tip'}
+              description={language === 'zh' 
+                ? '您可以选择基础配置（免费）或升级配置（额外费用）。即使只选择基础配置，也能完成完整的定制流程。'
+                : 'You can choose basic configurations (free) or premium configurations (additional cost). Even with only basic configurations, you can complete the full customization process.'
+              }
+              type="info"
+              showIcon
+              style={{ marginBottom: 20 }}
+            />
+          </>
+        )}
+        
+        <Radio.Group 
+          value={customization[currentStepConfig.key]}
+          onChange={(e) => handleOptionChange(currentStepConfig.key, e.target.value)}
           style={{ width: '100%' }}
         >
-          {option.values.map(value => (
-            <Option key={value.id} value={value.id} disabled={!value.isAvailable}>
-              {value.displayName}
-              {value.priceModifier > 0 && (
-                <span className="ml-2 text-blue-500">
-                  +¥{value.priceModifier.toLocaleString()}
+          <Space direction="vertical" style={{ width: '100%' }}>
+            {currentStepConfig.options.map(option => (
+              <Radio.Button 
+                key={option.value} 
+                value={option.value}
+                style={{ 
+                  width: '100%', 
+                  height: '60px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  border: option.isBasic ? '2px solid #52c41a' : '2px solid #d9d9d9',
+                  background: option.isBasic ? '#f6ffed' : '#ffffff'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontWeight: 500 }}>{option.label}</span>
+                  {option.isBasic && (
+                    <span style={{ 
+                      background: '#52c41a', 
+                      color: 'white', 
+                      padding: '2px 6px', 
+                      borderRadius: '10px', 
+                      fontSize: '10px' 
+                    }}>
+                      {language === 'zh' ? '基础' : 'Basic'}
+                    </span>
+                  )}
+                </div>
+                <span style={{ 
+                  color: option.price > 0 ? '#52c41a' : '#52c41a', 
+                  fontWeight: 600 
+                }}>
+                  {option.price > 0 ? `+¥${option.price}` : (language === 'zh' ? '免费' : 'Free')}
                 </span>
-              )}
-            </Option>
-          ))}
-        </Select>
-      );
-    }
-
-    // 默认使用图片网格
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {option.values.map(value => {
-          const isSelected = configuration[option.id] === value.id;
-          return (
-            <div 
-              key={value.id}
-              className={`
-                p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 relative
-                ${isSelected 
-                  ? 'border-blue-500 bg-blue-50' 
-                  : 'border-gray-200 hover:border-gray-300'
-                }
-                ${!value.isAvailable ? 'opacity-50 cursor-not-allowed' : ''}
-              `}
-              onClick={() => value.isAvailable && handleConfigChange(option.id, value.id)}
-            >
-              {value.imageUrl && (
-                <div className="mb-3">
-                  <Image
-                    src={value.imageUrl}
-                    alt={value.displayName}
-                    width={80}
-                    height={80}
-                    className="rounded-md object-cover mx-auto"
-                    preview={false}
-                  />
-                </div>
-              )}
-              
-              <div className="text-center">
-                <div className="font-medium text-gray-800 mb-1">{value.displayName}</div>
-                {value.description && (
-                  <div className="text-sm text-gray-500 mb-2">{value.description}</div>
-                )}
-                
-                {value.priceModifier > 0 && (
-                  <div className="text-sm font-semibold text-blue-600">
-                    +¥{value.priceModifier.toLocaleString()}
-                  </div>
-                )}
-              </div>
-              
-              {isSelected && (
-                <div className="absolute top-2 right-2">
-                  <CheckOutlined className="text-blue-500" />
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              </Radio.Button>
+            ))}
+          </Space>
+        </Radio.Group>
+        </div>
     );
   };
 
-  // 渲染当前步骤
-  const renderCurrentStep = () => {
-    const step = customizationSteps[currentStep];
-    const option = product.customizationOptions.find(opt => opt.id === step.key);
-    
-    if (!option) {
-      return <div>{t.customization.optionNotFound}</div>;
-    }
-
-    return (
-      <Card className="shadow-sm border border-gray-200">
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-semibold">{option.displayName}</span>
-                {option.required && <Badge color="red" text={t.customization.required} size="small" />}
-              </div>
-              {option.description && (
-                <Text type="secondary" className="text-sm block mt-1">
-                  {option.description}
-                </Text>
-              )}
-            </div>
-            
-            {configuration[option.id] && (
-              <div className="text-right">
-                <Text type="secondary" className="text-xs block">{t.customization.selected}</Text>
-                <Text className="text-sm font-medium">
-                  {option.values.find(v => v.id === configuration[option.id])?.displayName}
-                </Text>
-              </div>
-            )}
-          </div>
-          
-          <Paragraph className="text-gray-600 mb-4">
-            {step.description}
-          </Paragraph>
-        </div>
-        
-        <div className="min-h-[300px]">
-          {renderOptions(option)}
-        </div>
-      </Card>
-    );
-  };
-
-  // 处理添加到购物车
-  const handleAddToCart = () => {
-    const customizationDetails: CustomizationDetails = {
-      id: `custom_${Date.now()}`,
-      productId: product.id,
-      configurations: configuration,
-      priceBreakdown: pricing.breakdown.map(item => ({
-        category: item.category,
-        name: item.name,
-        price: item.price,
-        type: item.type as 'base' | 'option'
-      })),
-      basePrice: pricing.basePrice,
-      totalModifier: pricing.totalModifier,
-      finalPrice: pricing.finalPrice,
-      createdAt: new Date().toISOString()
+  const handleConfirm = () => {
+    const customizedProduct = {
+      ...product,
+      price: customization.totalPrice,
+      isCustomized: true,
+      customization: customization,
+      image: product.imageUrl
     };
-
-    onAddToCart(customizationDetails);
     
-    notification.success({
-      message: t.customization.customWatchAddedToCart,
-      description: t.customization.customWatchSuccessfullyAddedToCart,
-      duration: 3,
-    });
-
-    setShowConfirmModal(false);
-  };
-
-  // 步骤导航
-  const previousStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+    addItem(customizedProduct);
+    
+    if (onConfirm) {
+      onConfirm(customization);
     }
+    
+    onClose();
   };
 
-  const nextStep = () => {
-    if (currentStep < customizationSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
+  // 计算完成进度
+  const completionProgress = ((currentStep + 1) / customizationSteps.length) * 100;
 
   return (
-    <div className="watch-customizer">
-      {/* 调试信息 */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-        <div className="text-sm font-semibold text-green-800 mb-2">{t.customization.customizationNormal}</div>
-        <div className="text-xs text-green-700">
-          {t.customization.step} {currentStep + 1}/{customizationSteps.length} | 
-          {t.customization.selectedOptions}: {Object.keys(configuration).length} | 
-          {t.customization.totalPrice}: ¥{pricing.finalPrice.toLocaleString()}
+    <Modal
+      open={isOpen}
+      onCancel={onClose}
+      footer={null}
+      width={1400}
+      title={
+        <div style={{ textAlign: 'center' }}>
+          <Title level={3} style={{ margin: 0, color: '#1890ff' }}>
+            {language === 'zh' ? '🎨 手表定制工坊' : '🎨 Watch Customization Studio'}
+          </Title>
+          <Text type="secondary" style={{ fontSize: '14px' }}>
+            {language === 'zh' 
+              ? '选择基础配置或升级配置，打造您的专属手表'
+              : 'Choose basic or premium configurations to create your exclusive watch'
+            }
+          </Text>
         </div>
-      </div>
-
-      {/* 步骤指示器 */}
-      <Steps
-        current={currentStep}
-        size="small"
-        className="mb-5"
-        items={customizationSteps.map(step => ({
-          title: step.title,
-          icon: <span className="text-base">{step.icon}</span>
-        }))}
-      />
-
-      {/* 验证提示 */}
-      {validation.errors.length > 0 && (
-        <Alert
-          type="error"
-          message={t.customization.configError}
-          description={
-            <ul className="mb-0">
-              {validation.errors.map((error, index) => (
-                <li key={index}>{error.message}</li>
-              ))}
-            </ul>
-          }
-          className="mb-4"
-        />
-      )}
-
-      {/* 当前步骤内容 */}
-      <div className="min-h-96 mb-6">
-        {renderCurrentStep()}
-      </div>
-
-      {/* 导航按钮 */}
-      <div className="flex justify-between items-center pt-6 border-t border-gray-200">
-        <Button
-          onClick={previousStep}
-          disabled={currentStep === 0}
-          icon={<LeftOutlined />}
-          size="large"
-        >
-          {t.customization.previousStep}
-        </Button>
-
-        <div className="text-center flex-1 mx-4">
-          <div className="bg-blue-50 rounded-lg p-3">
-            <div className="text-xs text-gray-600 mb-1">{t.customization.estimatedCustomizationFee}</div>
-            <div className="text-lg font-bold text-blue-600">
-              ¥{pricing.finalPrice.toLocaleString()}
-            </div>
-            {pricing.totalModifier > 0 && (
-              <div className="text-xs text-gray-500">
-                {t.customization.basePrice} ¥{pricing.basePrice.toLocaleString()} + {t.customization.customizationFee} ¥{pricing.totalModifier.toLocaleString()}
-              </div>
+      }
+      closeIcon={<CloseOutlined />}
+      className="watch-customizer-modal"
+      destroyOnHidden={true}
+    >
+      <Row gutter={32}>
+        {/* 左侧3D预览 */}
+        <Col span={14}>
+          {render3DPreview()}
+          
+          {/* 价格显示 */}
+          <div style={{
+            marginTop: '20px',
+            padding: '20px',
+            background: customization.isBasicCustomization 
+              ? 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)'
+              : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            borderRadius: '12px',
+            color: 'white',
+            textAlign: 'center'
+          }}>
+            <Title level={4} style={{ color: 'white', margin: 0 }}>
+              {language === 'zh' ? '定制总价' : 'Total Price'}: 
+              <span style={{ fontSize: '32px', marginLeft: '10px' }}>
+                ¥{customization.totalPrice.toLocaleString()}
+              </span>
+            </Title>
+            {customization.isBasicCustomization && (
+              <Text style={{ color: 'white', fontSize: '14px', opacity: 0.9 }}>
+                {language === 'zh' ? '✨ 基础定制 - 性价比之选' : '✨ Basic Customization - Best Value'}
+              </Text>
             )}
           </div>
-        </div>
+        </Col>
+
+        {/* 右侧定制选项 */}
+        <Col span={10}>
+          {/* 进度条 */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text strong>{language === 'zh' ? '定制进度' : 'Customization Progress'}</Text>
+              <Text type="secondary">{Math.round(completionProgress)}%</Text>
+            </div>
+            <Progress 
+              percent={completionProgress} 
+              strokeColor={customization.isBasicCustomization ? '#52c41a' : '#1890ff'}
+              showInfo={false}
+            />
+          </div>
+
+          <Steps
+            current={currentStep}
+            direction="vertical" 
+            size="small"
+            style={{ marginBottom: 20 }}
+          >
+            {customizationSteps.map((step, index) => (
+              <Step 
+                key={index}
+                title={step.title}
+                status={index < currentStep ? 'finish' : index === currentStep ? 'process' : 'wait'}
+              />
+            ))}
+          </Steps>
+
+          {renderCustomizationStep()}
+
+          {/* 操作按钮 */}
+          <div style={{ marginTop: 30, display: 'flex', gap: '12px' }}>
+            {currentStep > 0 && (
+        <Button
+          size="large"
+                onClick={() => setCurrentStep(prev => prev - 1)}
+        >
+                {language === 'zh' ? '上一步' : 'Previous'}
+        </Button>
+            )}
 
         {currentStep < customizationSteps.length - 1 ? (
           <Button
-            onClick={nextStep}
             type="primary"
-            icon={<RightOutlined />}
             size="large"
+                onClick={() => setCurrentStep(prev => prev + 1)}
+                style={{ flex: 1 }}
           >
-            {t.customization.nextStep}
+                {language === 'zh' ? '下一步' : 'Next'}
           </Button>
         ) : (
           <Button
             type="primary"
-            icon={<ShoppingCartOutlined />}
             size="large"
-            onClick={() => setShowConfirmModal(true)}
+                icon={<CheckOutlined />}
+                onClick={handleConfirm}
+                style={{ flex: 1 }}
           >
-            {t.customization.confirmCustomization}
+                {language === 'zh' ? '确认定制并加入购物车' : 'Confirm & Add to Cart'}
           </Button>
         )}
-      </div>
-
-      {/* 确认弹窗 */}
-      <Modal
-        open={showConfirmModal}
-        onCancel={() => setShowConfirmModal(false)}
-        footer={null}
-        width={600}
-        className="confirmation-modal"
-      >
-        <div className="p-6">
-          <div className="text-center mb-6">
-            <div className="text-4xl mb-3">⌚</div>
-            <Title level={3} className="mb-2">{t.customization.confirmCustomWatch}</Title>
-            <Text type="secondary">{t.customization.pleaseReviewConfig}</Text>
           </div>
-
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-6 border border-blue-100">
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                <span className="text-2xl">⌚</span>
-              </div>
-              <div className="flex-1">
-                <Title level={4} className="mb-1">{product.name}</Title>
-                <Text type="secondary" className="block">{product.description}</Text>
-                <Tag color="blue" className="mt-2">{t.customization.customVersion}</Tag>
-              </div>
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <Title level={5} className="mb-4 flex items-center">
-              <span className="mr-2">🎨</span>
-              {t.customization.customConfigList}
-            </Title>
-            <div className="space-y-3">
-              {Object.entries(configuration).map(([optionId, valueId]) => {
-                const option = product.customizationOptions.find(opt => opt.id === optionId);
-                const value = option?.values.find(val => val.id === valueId);
-                if (!option || !value) return null;
-
-                return (
-                  <div key={optionId} className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-md">
-                    <span className="text-gray-700">{option.displayName}:</span>
-                    <span className="font-medium text-gray-900">{value.displayName}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200">
-            <Title level={5} className="mb-3 flex items-center">
-              <span className="mr-2">💰</span>
-              {t.customization.priceBreakdown}
-            </Title>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>{t.customization.basePrice}</span>
-                <span>¥{pricing.basePrice.toLocaleString()}</span>
-              </div>
-              {pricing.totalModifier > 0 && (
-                <div className="flex justify-between text-blue-600">
-                  <span>{t.customization.customizationFee}</span>
-                  <span>+¥{pricing.totalModifier.toLocaleString()}</span>
-                </div>
-              )}
-              <Divider className="my-2" />
-              <div className="flex justify-between text-lg font-bold text-gray-800">
-                <span>{t.customization.total}</span>
-                <span>¥{pricing.finalPrice.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-
-          <Alert
-            message={t.customization.tip}
-            description={t.customization.customWatchProductionTime}
-            type="info"
-            showIcon
-            className="mb-6"
-          />
-
-          <div className="flex justify-end space-x-3">
-            <Button 
-              size="large"
-              onClick={() => setShowConfirmModal(false)}
-            >
-              {t.customization.returnToModify}
-            </Button>
-            <Button 
-              type="primary" 
-              size="large"
-              onClick={handleAddToCart}
-              className="px-8"
-            >
-              {t.customization.confirmAndAddToCart}
-            </Button>
-          </div>
-        </div>
+        </Col>
+      </Row>
       </Modal>
-    </div>
   );
 };
 

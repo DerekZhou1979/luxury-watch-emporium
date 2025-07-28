@@ -1,499 +1,449 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useLanguage } from '../../hooks/use-language';
-import { Order, OrderStatus, OrderItem } from '../../seagull-watch-types';
+import React, { useState, useEffect } from 'react';
 import { 
-  CalendarOutlined, 
-  CreditCardOutlined, 
-  ShoppingOutlined, 
-  EyeOutlined,
-  ReloadOutlined,
-  TagOutlined,
-  SettingOutlined,
-  DollarOutlined,
-  InfoCircleOutlined,
-  ClockCircleOutlined,
-  CheckCircleOutlined,
+  Card, 
+  List, 
+  Tag, 
+  Button, 
+  Modal, 
+  Descriptions, 
+  Space, 
+  Typography,
+  Empty,
+  Spin,
+  message
+} from 'antd';
+import { 
+  EyeOutlined, 
+  ClockCircleOutlined, 
+  CheckCircleOutlined, 
+  ExclamationCircleOutlined,
   TruckOutlined,
-  GiftOutlined,
-  CloseCircleOutlined
+  UserOutlined,
+  PhoneOutlined,
+  EnvironmentOutlined
 } from '@ant-design/icons';
+import { useLanguage } from '../../hooks/use-language';
 
-interface MyOrdersProps {
-  orders: Order[];
-  onRefresh: () => void;
+const { Text, Title } = Typography;
+
+// 订单状态枚举
+enum OrderStatus {
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed', 
+  PROCESSING = 'processing',
+  SHIPPED = 'shipped',
+  DELIVERED = 'delivered',
+  CANCELLED = 'cancelled'
 }
 
-const MyOrders: React.FC<MyOrdersProps> = ({ orders, onRefresh }) => {
+// 订单接口
+interface Order {
+  id: string;
+  orderNumber: string;
+  orderDate: string;
+  status: OrderStatus;
+  totalAmount: number;
+  items: OrderItem[];
+  shippingAddress: ShippingAddress;
+  customerInfo: CustomerInfo;
+  customization?: CustomizationDetails;
+}
+
+interface OrderItem {
+  id: string;
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  customization?: CustomizationDetails;
+}
+
+interface ShippingAddress {
+  name: string;
+  phone: string;
+  address: string;
+  city: string;
+  postalCode: string;
+}
+
+interface CustomerInfo {
+  name: string;
+  email: string;
+  phone: string;
+}
+
+interface CustomizationDetails {
+  configurations: Record<string, string>;
+  finalPrice?: number;
+}
+
+const MyOrders: React.FC = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
+  
+  // 正确导入语言钩子
   const { t } = useLanguage();
-  const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
-  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
-  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
-  // 过滤订单
-  const filteredOrders = orders.filter(order => {
-    if (statusFilter === 'all') return true;
-    return order.status === statusFilter;
-  });
-
-  // 排序订单
-  const sortedOrders = [...filteredOrders].sort((a, b) => {
-    if (sortBy === 'date') {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    } else {
-      return b.total - a.total;
-    }
-  });
-
-  const getStatusConfig = (status: OrderStatus) => {
+  // 获取订单状态的中文描述
+  const getStatusText = (status: OrderStatus): string => {
+    const isChinese = t.userCenter?.title === '个人中心';
+    
     switch (status) {
       case OrderStatus.PENDING:
-        return {
-          color: 'text-yellow-600',
-          bgColor: 'bg-yellow-50',
-          borderColor: 'border-yellow-200',
-          icon: ClockCircleOutlined,
-          text: t.userCenter.pendingPayment,
-          dotColor: 'bg-yellow-400'
-        };
-      case OrderStatus.PAID:
-        return {
-          color: 'text-green-600',
-          bgColor: 'bg-green-50',
-          borderColor: 'border-green-200',
-          icon: CheckCircleOutlined,
-          text: t.userCenter.paid,
-          dotColor: 'bg-green-400'
-        };
+        return isChinese ? '待确认' : 'Pending';
+      case OrderStatus.CONFIRMED:
+        return isChinese ? '已确认' : 'Confirmed';
       case OrderStatus.PROCESSING:
-        return {
-          color: 'text-blue-600',
-          bgColor: 'bg-blue-50',
-          borderColor: 'border-blue-200',
-          icon: SettingOutlined,
-          text: t.userCenter.processing,
-          dotColor: 'bg-blue-400'
-        };
+        return isChinese ? '处理中' : 'Processing';
       case OrderStatus.SHIPPED:
-        return {
-          color: 'text-purple-600',
-          bgColor: 'bg-purple-50',
-          borderColor: 'border-purple-200',
-          icon: TruckOutlined,
-          text: t.userCenter.shipped,
-          dotColor: 'bg-purple-400'
-        };
+        return isChinese ? '已发货' : 'Shipped';
       case OrderStatus.DELIVERED:
-        return {
-          color: 'text-emerald-600',
-          bgColor: 'bg-emerald-50',
-          borderColor: 'border-emerald-200',
-          icon: GiftOutlined,
-          text: t.userCenter.delivered,
-          dotColor: 'bg-emerald-400'
-        };
+        return isChinese ? '已送达' : 'Delivered';
       case OrderStatus.CANCELLED:
-        return {
-          color: 'text-red-600',
-          bgColor: 'bg-red-50',
-          borderColor: 'border-red-200',
-          icon: CloseCircleOutlined,
-          text: t.userCenter.cancelled,
-          dotColor: 'bg-red-400'
-        };
+        return isChinese ? '已取消' : 'Cancelled';
       default:
-        return {
-          color: 'text-gray-600',
-          bgColor: 'bg-gray-50',
-          borderColor: 'border-gray-200',
-          icon: InfoCircleOutlined,
-          text: status,
-          dotColor: 'bg-gray-400'
-        };
+        return isChinese ? '未知状态' : 'Unknown';
     }
   };
 
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString(t.userCenter.title === '个人中心' ? 'zh-CN' : 'en-US', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getStatusCount = (status: OrderStatus | 'all'): number => {
-    if (status === 'all') return orders.length;
-    return orders.filter(order => order.status === status).length;
-  };
-
-  const [customizationDetails, setCustomizationDetails] = useState<Record<string, OrderCustomizationDetail[]>>({});
-
-  // 获取订单定制详情
-  const fetchCustomizationDetails = async (orderItems: OrderItem[]) => {
-    const details: Record<string, OrderCustomizationDetail[]> = {};
-    
-    for (const item of orderItems) {
-      if (item.isCustomized) {
-        try {
-          // 从订单项获取订单项ID - 需要从数据库查询
-          // 这里我们使用一个临时的方法来获取详情
-          const itemDetails = await CustomizationService.getOrderCustomizationDetails(`${item.productId}_temp`);
-          details[item.productId] = itemDetails;
-        } catch (error) {
-          console.error('获取定制详情失败:', error);
-          details[item.productId] = [];
-        }
-      }
+  // 获取状态颜色
+  const getStatusColor = (status: OrderStatus): string => {
+    switch (status) {
+      case OrderStatus.PENDING:
+        return 'orange';
+      case OrderStatus.CONFIRMED:
+        return 'blue';
+      case OrderStatus.PROCESSING:
+        return 'processing';
+      case OrderStatus.SHIPPED:
+        return 'cyan';
+      case OrderStatus.DELIVERED:
+        return 'success';
+      case OrderStatus.CANCELLED:
+        return 'error';
+      default:
+        return 'default';
     }
-    
-    setCustomizationDetails(details);
   };
 
-  const renderCustomizationDetails = (item: OrderItem) => {
-    if (!item.isCustomized || !item.customization) {
-      return null;
+  // 获取状态图标
+  const getStatusIcon = (status: OrderStatus) => {
+    switch (status) {
+      case OrderStatus.PENDING:
+        return <ClockCircleOutlined />;
+      case OrderStatus.CONFIRMED:
+        return <CheckCircleOutlined />;
+      case OrderStatus.PROCESSING:
+        return <ExclamationCircleOutlined />;
+      case OrderStatus.SHIPPED:
+        return <TruckOutlined />;
+      case OrderStatus.DELIVERED:
+        return <CheckCircleOutlined />;
+      case OrderStatus.CANCELLED:
+        return <ExclamationCircleOutlined />;
+      default:
+        return <ClockCircleOutlined />;
     }
+  };
 
-    const customization = item.customization;
-    const isChineseMode = t.userCenter.title === '个人中心';
-    
-    return (
-      <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200/50">
-        <div className="flex items-center space-x-2 mb-3">
-          <SettingOutlined className="text-blue-600" />
-          <span className="font-semibold text-blue-800">
-            {isChineseMode ? '定制详情' : 'Customization Details'}
-          </span>
-        </div>
+  // 模拟获取订单数据
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        // 模拟API调用
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        {/* 定制选项 */}
-        <div className="grid md:grid-cols-2 gap-4 mb-4">
-          {Object.entries(customization.configurations).map(([category, value]) => {
-            // 从数据库获取的定制详情
-            const itemDetails = customizationDetails[item.productId] || [];
-            const detail = itemDetails.find(d => d.category_id === category);
-            
-            const displayName = detail 
-              ? (isChineseMode ? detail.category_name : detail.category_name_en)
-              : category.replace('_', ' ');
-            
-            const displayValue = detail 
-              ? (isChineseMode ? detail.option_name : detail.option_name_en)
-              : value;
-            
-            return (
-              <div key={category} className="flex justify-between items-center py-2 px-3 bg-white rounded-md border border-blue-100">
-                <span className="text-gray-600 text-sm capitalize">{displayName}:</span>
-                <span className="font-medium text-gray-800">{displayValue}</span>
-              </div>
-            );
-          })}
-        </div>
+        const mockOrders: Order[] = [
+          {
+            id: '1',
+            orderNumber: 'ORD-2024-001',
+            orderDate: '2024-01-15',
+            status: OrderStatus.DELIVERED,
+            totalAmount: 15800,
+            items: [
+              {
+                id: '1',
+                productId: 'seagull-1963-pilot',
+                name: t.userCenter?.title === '个人中心' ? '海鸥1963飞行员腕表' : 'Seagull 1963 Pilot Watch',
+                price: 15800,
+                quantity: 1,
+                image: '/images/seagull_product_1963pilot_main_01.png',
+                customization: {
+                  configurations: {
+                    case: 'steel',
+                    dial: 'white',
+                    hands: 'classic',
+                    secondHand: 'classic',
+                    movement: 'automatic'
+                  },
+                  finalPrice: 15800
+                }
+              }
+            ],
+            shippingAddress: {
+              name: t.userCenter?.title === '个人中心' ? '张三' : 'Zhang San',
+              phone: '13800138000',
+              address: t.userCenter?.title === '个人中心' ? '北京市朝阳区建国路88号' : '88 Jianguo Road, Chaoyang District, Beijing',
+              city: t.userCenter?.title === '个人中心' ? '北京' : 'Beijing',
+              postalCode: '100000'
+            },
+            customerInfo: {
+              name: t.userCenter?.title === '个人中心' ? '张三' : 'Zhang San',
+              email: 'zhangsan@example.com',
+              phone: '13800138000'
+            }
+          },
+          {
+            id: '2',
+            orderNumber: 'ORD-2024-002',
+            orderDate: '2024-01-20',
+            status: OrderStatus.SHIPPED,
+            totalAmount: 22800,
+            items: [
+              {
+                id: '2',
+                productId: 'seagull-tourbillon-skeleton',
+                name: t.userCenter?.title === '个人中心' ? '海鸥陀飞轮镂空腕表' : 'Seagull Tourbillon Skeleton Watch',
+                price: 22800,
+                quantity: 1,
+                image: '/images/seagull_product_tourbillon_skeleton_main.jpg'
+              }
+            ],
+            shippingAddress: {
+              name: t.userCenter?.title === '个人中心' ? '李四' : 'Li Si',
+              phone: '13900139000',
+              address: t.userCenter?.title === '个人中心' ? '上海市浦东新区陆家嘴金融区' : 'Lujiazui Financial District, Pudong New Area, Shanghai',
+              city: t.userCenter?.title === '个人中心' ? '上海' : 'Shanghai',
+              postalCode: '200000'
+            },
+            customerInfo: {
+              name: t.userCenter?.title === '个人中心' ? '李四' : 'Li Si',
+              email: 'lisi@example.com',
+              phone: '13900139000'
+            }
+          }
+        ];
+        
+        setOrders(mockOrders);
+      } catch (error) {
+        message.error(t.userCenter?.title === '个人中心' ? '获取订单失败' : 'Failed to fetch orders');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-        {/* 价格明细 */}
-        <div className="border-t border-blue-200 pt-3">
-          <div className="space-y-2">
-            {customization.priceBreakdown.map((priceItem, index) => (
-              <div key={index} className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">
-                  {priceItem.type === 'base' 
-                    ? (isChineseMode ? '基础价格' : 'Base Price')
-                    : (isChineseMode ? priceItem.name : priceItem.name_en || priceItem.name)
-                  }:
-                </span>
-                <span className={`font-medium ${priceItem.type === 'base' ? 'text-gray-800' : 'text-blue-600'}`}>
-                  {priceItem.price > 0 ? `+¥${priceItem.price.toLocaleString()}` : '¥0'}
-                </span>
-              </div>
-            ))}
-            <div className="border-t border-blue-200 pt-2 flex justify-between items-center font-semibold">
-              <span className="text-gray-800">
-                {isChineseMode ? '最终价格' : 'Final Price'}:
-              </span>
-              <span className="text-blue-700 text-lg">¥{customization.finalPrice.toLocaleString()}</span>
-            </div>
-          </div>
-        </div>
+    fetchOrders();
+  }, [t.userCenter?.title]);
+
+  const handleViewDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setIsDetailModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsDetailModalVisible(false);
+    setSelectedOrder(null);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Spin size="large" />
       </div>
     );
-  };
+  }
 
-  const statusFilters = [
-    { key: 'all' as const, label: t.userCenter.allOrders, count: getStatusCount('all') },
-    { key: OrderStatus.PENDING, label: t.userCenter.pendingPayment, count: getStatusCount(OrderStatus.PENDING) },
-    { key: OrderStatus.PAID, label: t.userCenter.paid, count: getStatusCount(OrderStatus.PAID) },
-    { key: OrderStatus.PROCESSING, label: t.userCenter.processing, count: getStatusCount(OrderStatus.PROCESSING) },
-    { key: OrderStatus.SHIPPED, label: t.userCenter.shipped, count: getStatusCount(OrderStatus.SHIPPED) },
-    { key: OrderStatus.DELIVERED, label: t.userCenter.delivered, count: getStatusCount(OrderStatus.DELIVERED) },
-    { key: OrderStatus.CANCELLED, label: t.userCenter.cancelled, count: getStatusCount(OrderStatus.CANCELLED) },
-  ];
-
-  return (
-    <div className="space-y-6">
-      {/* 头部 */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-            <ShoppingOutlined className="text-white text-lg" />
+    return (
+    <div className="my-orders">
+      <Card 
+        title={
+          <div className="flex items-center space-x-2">
+            <span className="text-xl"></span>
+            <span className="text-lg font-semibold">
+              {t.userCenter?.title === '个人中心' ? '我的订单' : 'My Orders'}
+            </span>
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">{t.userCenter.myOrders}</h2>
-            <p className="text-gray-500 text-sm">{t.userCenter.orderManagement}</p>
-          </div>
-        </div>
-        
-        <button 
-          onClick={onRefresh}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-md"
-        >
-          <ReloadOutlined />
-          <span>{t.userCenter.refresh}</span>
-        </button>
-      </div>
-
-      {/* 筛选和排序 */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200/50">
-        {/* 状态筛选 */}
-        <div className="mb-6">
-          <div className="flex flex-wrap gap-3">
-            {statusFilters.map((filter) => (
-              <button
-                key={filter.key}
-                onClick={() => setStatusFilter(filter.key)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                  statusFilter === filter.key
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+        }
+      >
+        {orders.length === 0 ? (
+          <Empty 
+            description={t.userCenter?.title === '个人中心' ? '暂无订单' : 'No orders yet'}
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          />
+        ) : (
+          <List
+            dataSource={orders}
+            renderItem={(order) => (
+              <List.Item
+                key={order.id}
+                actions={[
+                  <Button 
+                    type="primary" 
+                    icon={<EyeOutlined />}
+                    onClick={() => handleViewDetails(order)}
+                  >
+                    {t.userCenter?.title === '个人中心' ? '查看详情' : 'View Details'}
+                  </Button>
+                ]}
               >
-                <span>{filter.label}</span>
-                {filter.count > 0 && (
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    statusFilter === filter.key 
-                      ? 'bg-white/20 text-white' 
-                      : 'bg-blue-100 text-blue-600'
-                  }`}>
-                    {filter.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 排序选项 */}
-        <div className="flex items-center space-x-4">
-          <span className="text-gray-600 text-sm font-medium">{t.common.sort}:</span>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setSortBy('date')}
-              className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                sortBy === 'date'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:text-blue-600'
-              }`}
-            >
-              {t.userCenter.sortByDate}
-            </button>
-            <button
-              onClick={() => setSortBy('amount')}
-              className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                sortBy === 'amount'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:text-blue-600'
-              }`}
-            >
-              {t.userCenter.sortByAmount}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 订单列表 */}
-      {sortedOrders.length > 0 ? (
-        <div className="space-y-6">
-          {sortedOrders.map((order) => {
-            const statusConfig = getStatusConfig(order.status);
-            const isExpanded = expandedOrder === order.id;
-            
-            return (
-              <div key={order.id} className="bg-white rounded-xl shadow-sm border border-gray-200/50 overflow-hidden">
-                {/* 订单头部 */}
-                <div className="p-6 border-b border-gray-100">
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    <div className="flex items-start space-x-4">
-                      <div className={`w-12 h-12 ${statusConfig.bgColor} ${statusConfig.borderColor} border rounded-lg flex items-center justify-center`}>
-                        <statusConfig.icon className={`${statusConfig.color} text-lg`} />
+                <List.Item.Meta
+                  title={
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-semibold">
+                        {t.userCenter?.title === '个人中心' ? '订单号' : 'Order'}: {order.orderNumber}
+                      </span>
+                      <Tag 
+                        color={getStatusColor(order.status)}
+                        icon={getStatusIcon(order.status)}
+                      >
+                        {getStatusText(order.status)}
+                      </Tag>
+                    </div>
+                  }
+                  description={
+                    <div className="space-y-2">
+                      <div>
+                        <Text type="secondary">
+                          {t.userCenter?.title === '个人中心' ? '下单时间' : 'Order Date'}: {order.orderDate}
+                        </Text>
                       </div>
-                      
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-3">
-                          <h3 className="font-bold text-gray-800 text-lg">
-                            #{order.id.slice(-8)}
-                          </h3>
-                          <div className={`flex items-center space-x-2 px-3 py-1 ${statusConfig.bgColor} ${statusConfig.borderColor} border rounded-full`}>
-                            <div className={`w-2 h-2 ${statusConfig.dotColor} rounded-full`}></div>
-                            <span className={`text-sm font-medium ${statusConfig.color}`}>
-                              {statusConfig.text}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-4 text-sm text-gray-500">
-                          <div className="flex items-center space-x-1">
-                            <CalendarOutlined />
-                            <span>{t.userCenter.orderDate}: {formatDate(order.createdAt)}</span>
-                          </div>
-                          {order.paidAt && (
-                            <div className="flex items-center space-x-1">
-                              <CreditCardOutlined />
-                              <span>{t.userCenter.paymentDate}: {formatDate(order.paidAt)}</span>
-                            </div>
-                          )}
-                        </div>
+                      <div>
+                        <Text strong>
+                          {t.userCenter?.title === '个人中心' ? '总金额' : 'Total Amount'}: ¥{order.totalAmount.toLocaleString()}
+                        </Text>
+                      </div>
+                      <div>
+          <Text type="secondary">
+                          {t.userCenter?.title === '个人中心' ? '商品数量' : 'Items'}: {order.items.length}
+          </Text>
                       </div>
                     </div>
-                    
-                    <div className="text-right space-y-2">
-                      <div className="text-2xl font-bold text-blue-600">
-                        ¥{order.total.toLocaleString()}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {order.items.length} {t.userCenter.orderItems}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  }
+                />
+              </List.Item>
+            )}
+          />
+        )}
+      </Card>
 
-                {/* 订单商品列表（展开/收起） */}
-                <div className="p-6 space-y-4">
-                  {order.items.slice(0, isExpanded ? undefined : 2).map((item, index) => (
-                    <div key={index} className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex items-start space-x-4">
+      {/* 订单详情弹窗 */}
+      <Modal
+        title={
+          <div className="flex items-center space-x-2">
+            <span className="text-xl"></span>
+            <span className="text-lg font-semibold">
+              {t.userCenter?.title === '个人中心' ? '订单详情' : 'Order Details'}
+            </span>
+          </div>
+        }
+        open={isDetailModalVisible}
+        onCancel={handleCloseModal}
+        footer={null}
+        width={800}
+      >
+        {selectedOrder && (
+          <div className="space-y-6">
+            {/* 订单基本信息 */}
+            <Card size="small" title={t.userCenter?.title === '个人中心' ? '订单信息' : 'Order Information'}>
+              <Descriptions column={2}>
+                <Descriptions.Item label={t.userCenter?.title === '个人中心' ? '订单号' : 'Order Number'}>
+                  {selectedOrder.orderNumber}
+                </Descriptions.Item>
+                <Descriptions.Item label={t.userCenter?.title === '个人中心' ? '下单时间' : 'Order Date'}>
+                  {selectedOrder.orderDate}
+                </Descriptions.Item>
+                <Descriptions.Item label={t.userCenter?.title === '个人中心' ? '订单状态' : 'Status'}>
+                  <Tag color={getStatusColor(selectedOrder.status)}>
+                    {getStatusText(selectedOrder.status)}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label={t.userCenter?.title === '个人中心' ? '总金额' : 'Total Amount'}>
+                  <Text strong>¥{selectedOrder.totalAmount.toLocaleString()}</Text>
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+
+            {/* 商品信息 */}
+            <Card size="small" title={t.userCenter?.title === '个人中心' ? '商品信息' : 'Product Information'}>
+              <List
+                dataSource={selectedOrder.items}
+                renderItem={(item) => (
+                  <List.Item>
+                    <List.Item.Meta
+                      avatar={
                         <img 
-                          src={item.imageUrl} 
-                          alt={item.name} 
-                          className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                          src={item.image} 
+                          alt={item.name}
+                          style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8 }}
                         />
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                              <h4 className="font-semibold text-gray-800 truncate">{item.name}</h4>
-                              <p className="text-sm text-gray-500">SKU: {item.sku}</p>
-                              {item.isCustomized && (
-                                <div className="flex items-center space-x-1">
-                                  <TagOutlined className="text-blue-600 text-xs" />
-                                  <span className="text-xs text-blue-600 font-medium">
-                                    {t.userCenter.customizedProduct}
-                                  </span>
+                      }
+                      title={item.name}
+                      description={
+                        <div className="space-y-2">
+                          <div>
+                            <Text type="secondary">
+                              {t.userCenter?.title === '个人中心' ? '单价' : 'Price'}: ¥{item.price.toLocaleString()}
+                            </Text>
+                          </div>
+                          <div>
+                            <Text type="secondary">
+                              {t.userCenter?.title === '个人中心' ? '数量' : 'Quantity'}: {item.quantity}
+                            </Text>
+                          </div>
+                          {item.customization && (
+        <div>
+                              <Text type="secondary">
+                                {t.userCenter?.title === '个人中心' ? '定制配置' : 'Customization'}:
+                              </Text>
+                              <div className="mt-1 space-y-1">
+                                {Object.entries(item.customization.configurations).map(([key, value]) => (
+                                  <div key={key} className="text-xs text-gray-600">
+                                    {key}: {value}
+            </div>
+          ))}
+                              </div>
+                              {item.customization.finalPrice && (
+                                <div className="mt-2">
+                                  <Text strong className="text-blue-600">
+                                    {t.userCenter?.title === '个人中心' ? '定制价格' : 'Custom Price'}: ¥{item.customization.finalPrice.toLocaleString()}
+                                  </Text>
                                 </div>
                               )}
-                            </div>
-                            
-                            <div className="text-right space-y-1">
-                              <div className="font-semibold text-gray-800">
-                                ¥{item.price.toLocaleString()} × {item.quantity}
-                              </div>
-                              <div className="text-lg font-bold text-blue-600">
-                                ¥{(item.price * item.quantity).toLocaleString()}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* 定制详情 */}
-                          {isExpanded && renderCustomizationDetails(item)}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* 展开/收起按钮 */}
-                  {order.items.length > 2 && (
-                    <button
-                      onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
-                      className="w-full py-2 text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors"
-                    >
-                      {isExpanded 
-                        ? `${t.userCenter.title === '个人中心' ? '收起' : 'Show Less'} ↑`
-                        : `${t.userCenter.title === '个人中心' ? '查看更多' : 'Show More'} (${order.items.length - 2}+) ↓`
-                      }
-                    </button>
-                  )}
-                </div>
-
-                {/* 订单操作 */}
-                <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div className="flex flex-wrap gap-3">
-                      <Link
-                        to={`/orders/${order.id}`}
-                        className="flex items-center space-x-2 px-4 py-2 border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
-                      >
-                        <EyeOutlined />
-                        <span>{t.userCenter.viewDetails}</span>
-                      </Link>
-                      
-                      {order.status === OrderStatus.PENDING && (
-                        <Link
-                          to={`/payment/${order.id}`}
-                          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                          <CreditCardOutlined />
-                          <span>{t.userCenter.payNow}</span>
-                        </Link>
-                      )}
-                      
-                      {order.status === OrderStatus.DELIVERED && (
-                        <button className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                          <ReloadOutlined />
-                          <span>{t.userCenter.buyAgain}</span>
-                        </button>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center space-x-2 text-sm text-gray-500">
-                      <DollarOutlined />
-                      <span>{t.userCenter.orderTotal}: ¥{order.total.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-200/50">
-          <div className="space-y-4">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-              <ShoppingOutlined className="text-4xl text-gray-400" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                {statusFilter === 'all' 
-                  ? (t.userCenter.title === '个人中心' ? '暂无订单' : 'No orders yet')
-                  : (t.userCenter.title === '个人中心' ? '暂无此状态的订单' : 'No orders with this status')
-                }
-              </h3>
-              <p className="text-gray-500">
-                {t.userCenter.title === '个人中心' 
-                  ? '开始您的定制之旅，创造独一无二的时计作品' 
-                  : 'Start your bespoke journey and create unique timepiece masterpieces'
-                }
-              </p>
-            </div>
-            <Link
-              to="/products"
-              className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <GiftOutlined />
-              <span>{t.userCenter.title === '个人中心' ? '开始定制' : 'Start Customization'}</span>
-            </Link>
           </div>
+                          )}
+        </div>
+                      }
+                    />
+                  </List.Item>
+                )}
+              />
+      </Card>
+
+            {/* 收货地址 */}
+            <Card size="small" title={t.userCenter?.title === '个人中心' ? '收货地址' : 'Shipping Address'}>
+              <Space direction="vertical" size="small">
+                <div className="flex items-center space-x-2">
+                  <UserOutlined />
+                  <Text strong>{selectedOrder.shippingAddress.name}</Text>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <PhoneOutlined />
+                  <Text>{selectedOrder.shippingAddress.phone}</Text>
+        </div>
+                <div className="flex items-center space-x-2">
+                  <EnvironmentOutlined />
+                  <Text>
+                    {selectedOrder.shippingAddress.address}, {selectedOrder.shippingAddress.city} {selectedOrder.shippingAddress.postalCode}
+          </Text>
+        </div>
+              </Space>
+            </Card>
         </div>
       )}
+      </Modal>
     </div>
   );
 };

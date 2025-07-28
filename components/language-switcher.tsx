@@ -18,10 +18,10 @@ const LanguageSwitcher: React.FC = () => {
       <div 
         onClick={() => handleLanguageChange(key as SupportedLanguage)}
         style={{
-          padding: '8px 12px',
+          padding: '6px 10px',
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
+          gap: '6px',
           fontWeight: language === key ? 600 : 500,
           color: language === key ? '#3b82f6' : '#1e293b',
           background: language === key ? '#f1f5f9' : 'transparent',
@@ -29,12 +29,12 @@ const LanguageSwitcher: React.FC = () => {
           cursor: 'pointer'
         }}
       >
-        <span style={{ fontSize: '16px' }}>
+        <span style={{ fontSize: '14px' }}>
           {key === 'zh' ? '🇨🇳' : '🇺🇸'}
         </span>
-        <span>{label}</span>
+        <span style={{ fontSize: '13px' }}>{label}</span>
         {language === key && (
-          <span style={{ color: '#3b82f6', marginLeft: 'auto', fontSize: '14px' }}>✓</span>
+          <span style={{ color: '#3b82f6', marginLeft: 'auto', fontSize: '12px' }}>✓</span>
         )}
       </div>
     ),
@@ -48,19 +48,21 @@ const LanguageSwitcher: React.FC = () => {
       arrow
     >
       <Button
-        size="middle"
+        size="small"
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
-          padding: '6px 12px',
-          height: '36px',
-          borderRadius: '8px',
+          gap: '4px',
+          padding: '4px 8px',
+          height: '32px',
+          borderRadius: '6px',
           background: 'rgba(255, 255, 255, 0.95)',
           border: '1px solid #e2e8f0',
           color: '#1e293b',
           fontWeight: 500,
-          cursor: 'pointer'
+          cursor: 'pointer',
+          minWidth: 'auto',
+          width: 'auto'
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.borderColor = '#3b82f6';
@@ -71,14 +73,14 @@ const LanguageSwitcher: React.FC = () => {
           e.currentTarget.style.boxShadow = 'none';
         }}
       >
-        <GlobalOutlined style={{ color: '#3b82f6', fontSize: '16px' }} />
-        <span style={{ fontSize: '14px' }}>
+        <GlobalOutlined style={{ color: '#3b82f6', fontSize: '14px' }} />
+        <span style={{ fontSize: '12px' }}>
           {language === 'zh' ? '🇨🇳' : '🇺🇸'}
         </span>
-        <span style={{ fontSize: '13px', fontWeight: 600 }}>
+        <span style={{ fontSize: '12px', fontWeight: 600 }}>
           {supportedLanguages[language]}
         </span>
-        <DownOutlined style={{ color: '#64748b', fontSize: '10px' }} />
+        <DownOutlined style={{ color: '#64748b', fontSize: '8px' }} />
       </Button>
     </Dropdown>
   );
